@@ -18,4 +18,8 @@ Imports:
 	Seurat,
 	tibble,
 	readr,
-	tidyr
+	tidyr, 
+	stats,
+	factoextra,
+	ggplot2,
+	ape
