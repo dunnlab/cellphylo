@@ -1,11 +1,14 @@
 #' combine_matrices
 #'
+#' Takes in multiple species matrices and combines them into a single multi-species matrix combined by gene id. This combined matrix is NOT cross-species normalized yet.
+#'
 #' @import dplyr
 #' @importFrom Seurat Read10X as.sparse
-#' @importFrom readr read_csv
+#' @importFrom readr read_tsv
 #' @importFrom tidyr pivot_longer
 #' @importFrom tibble rownames_to_column
 #' @importFrom DropletUtils write10xCounts
+#' @importFrom stats na.omit
 #'
 #' @param matrix_list  A list of the full paths to the matrices you want to combine. Cell ids must be in cellphylo format.
 #' @param ortholog_map_path Path to wrangled Ensembl orthologs file. The custom script for wrangling the raw Ensembl orthologs file can be found in wrangle_Ensembl_orthologs.Rmd.

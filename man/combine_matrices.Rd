@@ -17,5 +17,5 @@ combine_matrices(matrix_list, ortholog_map_path, combined_mat_name)
 full_join_sparse The cross-species combined matrix in sparse matrix format
 }
 \description{
-combine_matrices
+Takes in multiple species matrices and combines them into a single multi-species matrix combined by gene id. This combined matrix is NOT cross-species normalized yet.
 }

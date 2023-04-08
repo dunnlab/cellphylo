@@ -9,7 +9,7 @@ subsample_cells(path_to_matrix, n_reps)
 \arguments{
 \item{path_to_matrix}{Path to matrix you want to subsample from. Cell ids must be in cellphylo format.}
 
-\item{n_reps}{}
+\item{n_reps}{Number of replicates per each cell type group to be in the subsampled matrix.}
 }
 \value{
 mat.sub A matrix created by random subsampling of the input matrix. All cell ids must be in cellphylo format.

@@ -5,7 +5,7 @@
 #' @importFrom DropletUtils write10xCounts
 #'
 #' @param path_to_matrix Path to matrix you want to subsample from. Cell ids must be in cellphylo format.
-#' @param n_reps
+#' @param n_reps Number of replicates per each cell type group to be in the subsampled matrix.
 #'
 #' @return mat.sub A matrix created by random subsampling of the input matrix. All cell ids must be in cellphylo format.
 #'
