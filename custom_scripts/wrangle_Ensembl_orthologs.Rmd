@@ -1,0 +1,32 @@
+---
+title: "wrangle Ensembl orthologs file"
+output: html_notebook
+---
+
+The below code is designed to data wrangle the Ensembl ortholog file downloaded for Mah and Dunn (2023). This wrangling facilitates downstream analysis.
+
+```{r}
+library(tidyverse)
+
+setwd("~/repo/gene_pheno_ev/add_genomes/new/AqHum_5species/")
+
+# read in ensembl ontology file
+ensembl_map <- read_tsv("aqhumor_final/AqHumor_ensembl_orthologs.txt")
+# standardize column names manually
+colnames(ensembl_map) <- c("human_genename", "macM_genename","macM_homologytype", "macF_genename", "macF_homologytype","mouse_genename","mouse_homologytype", "pig_genename", "pig_homologytype")
+#remove NAs
+ensembl_map_noNA <- na.omit(ensembl_map)
+#filter for lines where every seq is a one2one ortholog
+ensembl_map_one2one <- filter(ensembl_map_noNA, macM_homologytype == "ortholog_one2one" & macF_homologytype == "ortholog_one2one" & mouse_homologytype == "ortholog_one2one" & pig_homologytype == "ortholog_one2one")
+#add gene identifiers
+ensembl_map_final <- mutate(ensembl_map_one2one, gene_identifier=paste0("gene_",1:nrow(ensembl_map_one2one)))
+#select just gene name columns
+ensembl_map_final <- select(ensembl_map_final, gene_identifier, macM_genename, macF_genename, mouse_genename, pig_genename, human_genename)
+colnames(ensembl_map_final) <- c("gene_identifier", "macM", "macF", "mouse", "pig", "human")
+                         
+
+write.table(ensembl_map_final, file = "AqHumor_ensembl_orthologs_wrangled.tsv", quote=FALSE, sep="\t", col.names=TRUE, row.names=FALSE)
+
+```
+
+
