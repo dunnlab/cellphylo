@@ -4,8 +4,9 @@
 #'
 #' @import ggplot2
 #' @importFrom Seurat Read10X
-#' @importFrom stats prcomp
+#' @importFrom stats prcomp sd
 #' @importFrom factoextra get_eigenvalue
+#' @importFrom grDevices pdf dev.off
 #'
 #' @param matrix_path Path to matrix PCA is to be performed on.
 #'

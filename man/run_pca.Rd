@@ -14,6 +14,8 @@ run_pca(matrix_path, n_PCs, subset, subset_file_path, print)
 \item{subset}{A list of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates.}
 
 \item{subset_file_path}{A text file containing a single column of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates.}
+
+\item{print}{Print out the PCA matrix}
 }
 \value{
 mat.sparse A matrix PCA has been performed on. This matrix may have subsetted from the full PCA matrix calculated from the input matrix by number of PCs and cell subset to retain.

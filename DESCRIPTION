@@ -22,4 +22,5 @@ Imports:
 	stats,
 	factoextra,
 	ggplot2,
-	ape
+	ape,
+	TreeTools

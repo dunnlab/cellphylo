@@ -5,7 +5,7 @@
 #' It is recommended that PCA be performed on the full, integrated unsubsampled matrix.The final PCA matrix may subset to a list of cells specified by the user by the `"subset" or "subset_file_path" option.
 #'
 #' @importFrom Seurat Read10X as.sparse
-#' @importFrom stats prcomp
+#' @importFrom stats prcomp sd
 #' @importFrom utils read.table
 #' @importFrom DropletUtils write10xCounts
 #'
@@ -13,6 +13,7 @@
 #' @param n_PCs Number of principal components to retain
 #' @param subset A list of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates.
 #' @param subset_file_path A text file containing a single column of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates.
+#' @param print Print out the PCA matrix
 #'
 #' @return mat.sparse A matrix PCA has been performed on. This matrix may have subsetted from the full PCA matrix calculated from the input matrix by number of PCs and cell subset to retain.
 #' @export
