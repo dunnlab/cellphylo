@@ -1,7 +1,6 @@
 #' make_pc_sweep_infiles
 #'
 #' @importFrom Seurat Read10X
-#' @importFrom data.table as.matrix
 #' @importFrom stats prcomp
 #' @importFrom utils write.table
 #'
