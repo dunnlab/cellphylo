@@ -24,4 +24,5 @@ Imports:
 	ggplot2,
 	ape,
 	TreeTools,
-	gtools
+	gtools,
+	phangorn
