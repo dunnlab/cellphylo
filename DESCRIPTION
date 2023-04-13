@@ -23,4 +23,5 @@ Imports:
 	factoextra,
 	ggplot2,
 	ape,
-	TreeTools
+	TreeTools,
+	gtools
