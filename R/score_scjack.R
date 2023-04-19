@@ -1,7 +1,7 @@
 #' score_scjack
 #'
 #' @importFrom phangorn plotBS
-#' @importFrom ape read.tree
+#' @importFrom ape read.tree consensus
 #' @importFrom stats median
 #'
 #' @param scjack_multiphylo A multiphylo object containing the jumble trees
