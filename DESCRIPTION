@@ -25,4 +25,5 @@ Imports:
 	ape,
 	TreeTools,
 	gtools,
-	phangorn
+	phangorn,
+	ggtree

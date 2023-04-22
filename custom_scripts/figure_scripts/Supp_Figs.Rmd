@@ -1,0 +1,247 @@
+---
+title: "Supplementary Figures"
+output: html_document
+date: "2023-04-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 92 cell phylogeny
+Calculating the 92 jumble search tree
+-> Did not recalculate, used tree from original analysis
+
+Identify best jumble search tree and calcualte jumble score
+```{r}
+
+setwd("~/repo/aqhumor/AqHum_5species/")
+
+tree_dir_path = "aqhumor_final/jumble/92_jumble_search/output/output_92_jumble_search_combined_19dec2022/outtrees_92_jumble_search_combined_19dec2022/"
+
+#find best jumble tree
+#best tree (sum of scores): index 64, outtree_92_jumble_search_2389877739.tre
+best_scjack_tree(tree_dir_path = tree_dir_path)
+list.files(tree_dir_path)
+
+#score jumble tree
+scjack_multiphylo <- combine_multi_trees(tree_dir_path)
+focal_tree_path = "aqhumor_final/jumble/92_jumble_search/output/output_92_jumble_search_combined_19dec2022/outtrees_92_jumble_search_combined_19dec2022/outtree_92_jumble_search_2389877739.tre"
+
+tree <- score_scjack(scjack_multiphylo = scjack_multiphylo, focal_tree_path = focal_tree_path, print=TRUE)
+
+#label tree
+mat_path <- "aqhumor_final/jumble/92_jumble/contml_92cell_subset_pca_var_norm_20PC_mtx/"
+tree_path <- "92_jumble_search_scored_2389877739.tre"
+file_name <- "92_jumble_search_scored_2389877739_labels.tre"
+label_tree(mat_path, tree_path, file_name, print=TRUE)
+
+
+```
+1] "max sum of scores =  index: 64 score: 6410.57692307692"
+[1] "max mean of scores =  index: 64 score: 71.2286324786325"
+
+input: (according to notes)
+output_92_jumble_search_combined_19dec2022 = 2d46ee0307405a3a4f57cd94c7f77ab2
+
+output: 
+MD5 (92_jumble_search_scored_2389877739_labels_20dec2022.tre) = 34b1920e4088bfba85b7dc3a85c91043
+
+Style in ggtree
+```{r}
+library(ape) #read.tree
+library(ggtree)
+library(ggplot2) 
+
+setwd("~/repo/aqhumor/AqHum_5Species/")
+
+#read in nj tree
+tree <- read.tree("aqhumor_final/plots_final/figures/supplement/fig_supp_92jumblesearch/92_jumble_search_scored_2389877739_labels_20dec2022.tre")
+
+labels.df <- data.frame(tip_num = c(1:length(tree$tip.label)),tip_label = tree$tip.label)
+
+#wrangle tip names
+#wrangle species tip names
+tip_species <- sapply(strsplit(labels.df$tip_label, "_"),function(v){return(v[1])})
+
+tip_species_wrangle <-gsub('human', "H. sap. ", tip_species) 
+tip_species_wrangle <-gsub('mouse', "M. mus. ", tip_species_wrangle) 
+tip_species_wrangle <-gsub('pig', "S. scr. ", tip_species_wrangle) 
+tip_species_wrangle <-gsub('macM', "M. mul. ", tip_species_wrangle) 
+tip_species_wrangle <-gsub('macF', "M. fas. ", tip_species_wrangle) 
+
+#wrangle cell type tip names
+#cell type tip names
+tip_cell_type <- sapply(strsplit(labels.df$tip_label, "_"),function(v){return(v[4])})
+
+tip_cell_type_wrangle <- gsub("Endo", "Endothelium", tip_cell_type)
+#Endo-... becomes Endothelium-...
+tip_cell_type_wrangle <- gsub('Endothelium-Corneal', "Corneal Endothelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('Endothelium-Vasc', "Vascular Endothelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('CollectorChn', "Collector Channel", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('SchlemmsCanal', "Schlemm Canal", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('Endo-Schlemms', "Schlemm Canal", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('SchwannCell-nmy', "Schwann Cell - nmy", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('SchwannCell-my', "Schwann Cell - my", tip_cell_type_wrangle)
+#must put after Schwann Cell -nmy and -my or gsub does not work correctly
+tip_cell_type_wrangle <- gsub('SchwannCell', "Schwann Cell", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('CiliaryMuscle', "Ciliary Muscle", tip_cell_type_wrangle)
+#specific to 92 cell tree
+tip_cell_type_wrangle <- gsub('BCell', "B Cell", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Epi-Corneal", "Corneal Epithelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Beam-A", "Beam A", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Beam-B", "Beam B", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Beam-X", "Beam X", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Beam-Y", "Beam Y", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Epi-Pigment" , "Pigmented Epithelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Epi-CiliaryPigment" , "Pigmented Ciliary Epithelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("Epi-CiliaryNonPigment" , "Non-Pigmented Ciliary Epithelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("MastCell" , "Mast Cell", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub("CollectorChnlAqVein" , "Collector Channel Aqueous Vein", tip_cell_type_wrangle)
+
+
+#combine into new tip names
+new_tree_labels <- paste0(tip_species_wrangle, " ", tip_cell_type_wrangle)
+tree$tip.label <- new_tree_labels
+
+#put together annotation df for ggtree
+#italics + bold
+lab_expression <- paste0("paste(italic('", tip_species_wrangle,"')", ", bold('",tip_cell_type_wrangle,"'))")
+#make the expression the new tree tip labels. This will be passed to and parsed in geom_tiplab()
+tree$tip.label <- lab_expression
+
+gg_tree <- ggtree(tree, linewidth=1, color="black", ladderize=T, right=T)  +
+  geom_tiplab(parse=TRUE, size=6.5) +
+  geom_text2(aes(label=round(as.numeric(label)), subset=(!isTip)), hjust=1.15, vjust=-0.50, size=6.5) +
+  xlim(0,5) 
+
+#print tree
+pdf(file="92_jumble_search_scored_2389877739_labels_20dec2022_ggtree.pdf", width=25, height=20)
+#print(tr) #unscaled version
+print(gg_tree)
+dev.off()
+
+```
+
+input:
+MD5 (92_jumble_search_scored_2389877739_labels_20dec2022.tre) = 34b1920e4088bfba85b7dc3a85c91043
+
+output:
+MD5 (92_jumble_search_scored_2389877739_labels_20dec2022_ggtree.pdf) = 398b135284f45659bddd533cbe1e12f9
+
+illustrator details
+start 180 mm x 210 mm artboard
+transform: w = 180 mm, h = 144 mm
+tip label and node text size ~5 pt
+
+input:
+MD5 (92_jumble_search_scored_2389877739_labels_20dec2022_ggtree.pdf) = 398b135284f45659bddd533cbe1e12f9
+output:
+MD5 (supp_fig_92jumblesearch.ai) = 5b8c8cedbb2a0e26ba8988b8bc52691d
+
+##54 cell scjack FBP phylogeny
+Use original analyses
+
+```{r}
+
+library(ape) #read.tree
+library(ggtree)
+library(phangorn) #midpoint
+
+setwd("~/repo/aqhumor/AqHum_5Species/")
+
+#read in nj tree
+tree <- read.tree("aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/outtree_54_jumble_search_1249177875_scjack_score.tre")
+#midpoint root tree
+tree <- midpoint(tree)
+
+labels.df <- data.frame(tip_num = c(1:length(tree$tip.label)),tip_label = tree$tip.label)
+
+#wrangle tip names
+#wrangle species tip names
+tip_species <- sapply(strsplit(labels.df$tip_label, "_"),function(v){return(v[1])})
+
+tip_species_wrangle <-gsub('human', "H. sap. ", tip_species) 
+tip_species_wrangle <-gsub('mouse', "M. mus. ", tip_species_wrangle) 
+tip_species_wrangle <-gsub('pig', "S. scr. ", tip_species_wrangle) 
+tip_species_wrangle <-gsub('macM', "M. mul. ", tip_species_wrangle) 
+tip_species_wrangle <-gsub('macF', "M. fas. ", tip_species_wrangle) 
+
+#wrangle cell type tip names
+#cell type tip names
+tip_cell_type <- sapply(strsplit(labels.df$tip_label, "_"),function(v){return(v[2])})
+#remove cluster numbers
+tip_cell_type <-gsub('[0-9]+', "", tip_cell_type) 
+
+tip_cell_type_wrangle <- gsub('Endo-Corneal', "Corneal Endothelium", tip_cell_type)
+tip_cell_type_wrangle <- gsub('Endo-Vasc', "Vascular Endothelium", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('CollectorChn', "Collector Channel", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('SchlemmsCanal', "Schlemm Canal", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('Endo-Schlemms', "Schlemm Canal", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('SchwannCell-nmy', "Schwann Cell - nmy", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('SchwannCell-my', "Schwann Cell - my", tip_cell_type_wrangle)
+#must put after Schwann Cell -nmy and -my or gsub does not work correctly
+tip_cell_type_wrangle <- gsub('SchwannCell', "Schwann Cell", tip_cell_type_wrangle)
+tip_cell_type_wrangle <- gsub('CiliaryMuscle', "Ciliary Muscle", tip_cell_type_wrangle)
+
+
+#combine into new tip names
+new_tree_labels <- paste0(tip_species_wrangle, " ", tip_cell_type_wrangle)
+tree$tip.label <- new_tree_labels
+
+#put together annotation df for ggtree
+#italics + bold
+lab_expression <- paste0("paste(italic('", tip_species_wrangle,"')", ", bold('",tip_cell_type_wrangle,"'))")
+#make the expression the new tree tip labels. This will be passed to and parsed in geom_tiplab()
+tree$tip.label <- lab_expression
+
+gg_tree <- ggtree(tree, linewidth=1, color="black", ladderize=T, right=T)  +
+  geom_tiplab(parse=TRUE, size=5) +
+  geom_text2(aes(label=round(as.numeric(label)), subset=(!isTip)), hjust=1.15, vjust=-0.50, size=4.5) +
+  xlim(0,5) 
+
+
+#vertically compress clades of interest (horizontal branch lengths unchanged)
+sc <- scaleClade(gg_tree, node=93, scale=0.50) %>% scaleClade(node=80, scale=0.50) %>% scaleClade(node=76, scale=0.50) %>% scaleClade(node=72, scale=0.50) %>% scaleClade(node=107, scale=0.50) %>% scaleClade(node=56, scale=0.50) %>% scaleClade(node=98, scale=0.50) %>% scaleClade(node=89, scale=0.50) %>% scaleClade(node=87, scale=0.50) %>% scaleClade(node=64, scale=0.50) %>% scaleClade(node=60, scale=0.50) 
+
+
+
+#print tree
+pdf(file="outtree_54_jumble_search_1249177875_scjack_score_scaled_ggtree.pdf", width=17, height=15)
+#print(tr) #unscaled version
+print(sc)
+dev.off()
+
+
+
+```
+
+input
+outtree_54_jumble_search_1249177875_scjack_score.tre = ffdae80e13866b9ee987dcde91023340
+output
+MD5 (outtree_54_jumble_search_1249177875_scjack_score_scaled_ggtree.pdf) = b128fa7c55088b80cce03368d190952d
+
+didn't bother editing support value spacings-good enough
+
+illustrator details:
+start wtih 180 mm x 210 mm artboard
+transform: w = 215.9 mm, h = 190.5 mm (will overlap artboard)
+
+input:
+MD5 (outtree_54_jumble_search_1249177875_scjack_score_scaled_ggtree.pdf) = b128fa7c55088b80cce03368d190952d
+output
+MD5 (fig_supp_54cellFBP.ai) = 9227983fc53b65b9c5489eeaf8adddbb
+
+#Mermaid chart
+illustrator notes
+new version does not fit within nat eco evo specifications (too wide): -> width = 234 mm, height = 77 mm
+
+inputMD5
+phylopics:
+MD5 (human.svg) = 5570f5c975144370419f9f0f35fed873
+MD5 (macM.svg) = 1595a4ec784c0dbeb1ba8cf1def71f1a
+MD5 (mouse.svg) = e453eaf960826aa4198ec87b8e34c706
+MD5 (pig.svg) = 9d059d55d086db47f111a231a20db13f
+
+output:
+MD5 (cell_flow_chart_expanded_21Apr2023_with_scjack_v2.ai) = 7982733cf032b6f2857b5012feab2cfc

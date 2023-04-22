@@ -215,3 +215,155 @@ MD5 (output_scjack_jumble_search_540.tar.gz) = a68946b9a0a48742be977442e9145a0c
 
 output:
 MD5 (output_scjack_jumble_search_540_processed.tar.gz) = a7840d3b02c1d1e8aa8174c4a14dbba6
+
+
+Because I removed files, index between output files and matrices directory do not match.
+### run:
+```{r}
+setwd("~/repo/aqhumor/AqHum_5Species")
+
+#unrpocessed outtrees dir
+outtrees_dir <- "aqhumor_final/scjackknife/scjack_54_jumble_search/output_scjack_jumble_search_540/outtrees_scjack_jumble_search_540/"
+
+id_errored_runs(outtrees_dir)
+```
+
+Then in bash:
+```
+cd scjack_540_matrices
+rm -r $(<errored_runs.txt)
+
+```
+input:
+MD5 (scjack_540_matrices.tar.gz) = fec67e7d7afa0621617823635dd17eeb
+output:
+MD5 (scjack_540_matrices_processed.tar.gz) = b1280a4dfba74de7234d45f383c212db
+
+### Score scjack 54
+Label scjackknife trees
+```{r}
+setwd("~/repo/aqhumor/AqHum_5species/")
+
+#convert tree labels to common names
+n_trees = c(1:464)
+matrix_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_matrices_processed/"
+tree_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/output_scjack_jumble_search_540_processed/outtrees_scjack_jumble_search_540_processed/"
+
+labelled_trees <- label_scjack_trees_54(n_trees=n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path)
+```
+
+Identify and score best scjack tree - FBP
+```{r}
+
+setwd("~/repo/aqhumor/AqHum_5species/")
+
+tree_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label"
+
+#find best tree
+best_scjack_tree(tree_dir_path = tree_dir_path)
+list.files(tree_dir_path)
+
+#score
+scjack_multiphylo <- combine_multi_trees(tree_dir_path)
+#best mean
+focal_tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label/scjackknife_540_outtrees_common_labels_116_2192404113.tre"
+#best median
+focal_tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label/scjackknife_540_outtrees_common_labels_404_2139113093.tre"
+
+tree <- score_scjack(scjack_multiphylo = scjack_multiphylo,focal_tree_path = focal_tree_path, print=TRUE)
+```
+
+Plot scjack scores on best 54 jumble search tree
+```{r}
+#try the best jumble search tree
+#add common labels 
+n_trees = 1
+matrix_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/matrix/"
+tree_dir_path2 = "aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/tree/"
+label_scjack_trees_54(n_trees=n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path2)
+
+#manually add the best jumble tree to tree dir (did not save in dir)
+#scjackknife_540_outtrees_common_labels_search_61674183.tre to scjack_540_trees_common_label_with_best_jumble
+
+#score best jumble tree
+tree_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label_with_best_jumble"
+focal_tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/scjackknife_540_outtrees_common_labels_search_61674183.tre"
+scjack_multiphylo <- combine_multi_trees(tree_dir_path)
+tree <- score_scjack(scjack_multiphylo = scjack_multiphylo,focal_tree_path = focal_tree_path, print=TRUE)
+
+``` 
+
+#TBP - 540 scjack
+New two newick files: ref and boot
+Boot is multi-tree file, 1 tree per line:
+```{r boot_files}
+library(ape)
+
+multi_trees <- combine_multi_trees("aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/scjack_540_trees_common_label/")
+
+
+write.tree(multi_trees, file="multi_trees_scjack_54_jumble_search_common_label.tre")
+
+#wrangle best tree for use with scjack
+
+```
+
+input:
+MD5 (scjack_540_trees_common_label.tar.gz) = 3a8ba29e2939268f9eeaf1a950cb62d2
+
+output:
+MD5 (multi_trees_scjack_54_jumble_search_common_label.tre) = 7e57a6d6e15e67d781c4b001304e37d0
+
+
+Wrangle best jumble tree
+```{r boot_files2}
+tree <- read.tree("aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/outtree_54_jumble_search_1249177875.tre")
+
+labelled_tree <- label_tree(matrix_path = "aqhumor_final/jumble/54_jumble_search/contml_54cell_subset_pca_var_norm_20PC_mtx/", tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/outtree_54_jumble_search_1249177875.tre", file_name = "outtree_54_jumble_search_1249177875_label.tre", print=TRUE)
+
+#make common labels - code stolen from scjack label
+  species <- sapply(strsplit(labelled_tree$tip.label, "_"), function(v){return(v[1])})
+  cluster_id <- sapply(strsplit(labelled_tree$tip.label, "_"), function(v){return(v[3])})
+  new_label <- paste0(species, "_", cluster_id)
+  common_labels_tree <- labelled_tree
+  common_labels_tree$tip.label <- new_label
+  #print out common labels tree
+    write.tree(common_labels_tree, file="outtree_54_jumble_search_1249177875_common_label.tre")
+
+```
+
+>>> OR <<<
+***Use label_scjack_trees_54*** function instead:
+Made directories:
+wrangle_best_tree
+  matrix_dir -> contml_54cell_subset_pca_var_norm_20PC_mtx
+  tree_dir -> outtree_54_jumble_search_1249177875.tre
+Because label_scjack_trees_54 requires the matrix or tree be in directories (since it expects more than one run)
+
+```{r}
+library(ape)
+
+tree <- "aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/wrangle_best_tree/tree_dir/"
+#matrix must be in its own directory
+matrix_dir_path <- "aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/wrangle_best_tree/matrix_dir/"
+
+label_scjack_trees_54(n_trees = 1, matrix_dir_path = matrix_dir_path, tree_dir_path = tree )
+
+```
+
+Run booster
+github: https://github.com/evolbioinfo/booster (accessed Apr 10 2023)
+releases: https://github.com/evolbioinfo/booster/releases
+v0.1.2 booster_macos64
+MD5 (booster_macos64) = 1a753d2de972cf91f0f11103b6894d5e
+
+```
+./booster_macos64 -a tbe -i run/outtree_54_jumble_search_1249177875_common_label.tre -b run/multi_trees_scjack_54_jumble_search_common_label.tre > outtree_54_jumble_search_1249177875_tbe_score.tre
+
+```
+input:
+MD5 (multi_trees_scjack_54_jumble_search_common_label.tre) = 7e57a6d6e15e67d781c4b001304e37d0
+MD5 (outtree_54_jumble_search_1249177875_common_label.tre) = 6c1581caf20a6e3fee821c8a09799710
+
+output:
+MD5 (outtree_54_jumble_search_1249177875_tbe_score.tre) = ac72f71a46ef35cf4df8cb06183d10bc
