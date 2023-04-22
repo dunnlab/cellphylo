@@ -132,3 +132,29 @@ best_scjack_tree(tree_dir_path = tree_dir_path)
 list.files(tree_dir_path)
 
 ```
+
+Topology is identical:
+RF.dist = 0
+
+best sum/mean jumbles scores 
+ [1] "max mean of scores =  index: 1 score: 100"  "max mean of scores =  index: 2 score: 100" 
+ [3] "max mean of scores =  index: 3 score: 100"  "max mean of scores =  index: 4 score: 100" 
+ [5] "max mean of scores =  index: 5 score: 100"  "max mean of scores =  index: 6 score: 100" 
+ [7] "max mean of scores =  index: 7 score: 100"  "max mean of scores =  index: 8 score: 100" 
+ [9] "max mean of scores =  index: 9 score: 100"  "max mean of scores =  index: 10 score: 100"
+[11] "max mean of scores =  index: 11 score: 100" "max mean of scores =  index: 12 score: 100"
+[13] "max mean of scores =  index: 13 score: 100" "max mean of scores =  index: 14 score: 100"
+All trees are tied, since RF-dist = 0
+
+Branch length differs (KF dist !=0)
+KF dist is sqrt(sum of squared differences) aka standard dev of differences, Kuhner & Felsenstein  https://evolution.genetics.washington.edu/phylip/doc/treedist.html
+
+most representative branch lengths: tree index 2 and tree index 11
+tied for colsums: 0.2320657
+but this is after rounding, since KF.dist (tree2, tree11) = 1e-08
+
+tree index 2 colsum < tree index 11 colsum
+
+Select Tree index 2: outtree_54_jumble_search_1249177875.tre
+Mean KF dist = 0.02983213
+

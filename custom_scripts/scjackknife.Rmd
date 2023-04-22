@@ -1,0 +1,217 @@
+---
+title: "single cell jackknife analysis"
+---
+
+## 54 scjackmat
+
+### 540 matrix: Subset 919 cell matrix to 54 cell type groups
+```{r}
+library(Seurat)
+library(DropletUtils)
+
+setwd("~/repo/gene_pheno_ev/add_genomes/new/AqHum_5species/")
+mat <- Read10X("aqhumor_final/matrix_final/integrated/cross_species/cross_species_integrated/aqhumor_cross_species_integrated_mtx/")
+
+black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal", "Endo", "Endo_Schlemms", "Epi-CiliaryNonPigment", "Epi-CiliaryPigment","Epi-Pigment", "MastCell", "Myoepithelium", "Neuron", "SchwalbeLine", "Uveal","Vascular","Beam-A", "Beam-X", "Epi-Corneal", "Fibroblast", "BCell")
+
+
+cell_ids <- colnames(mat)
+cell_type_ids <- sapply(strsplit(cell_ids, "_"), function(v){return(v[4])})
+
+filter_index <- which(!(cell_type_ids %in% black_list))
+
+mat_filt <- mat[,filter_index]
+
+#write matrix
+#write10xCounts("contml_57cell_subset_pca_var_norm_20PC_mtx", mat_filt, version="3")
+write10xCounts("540_aqhumor_cross_species_integrated_mtx", mat_filt, version="3")
+
+```
+
+
+### Create scjackknife files
+500 samples
+```{r}
+
+#919 cell normalized, within + cross-species integrated matrix, not subsetted with black-listed cell types removed
+matrix_path = "aqhumor_final/matrix_final/integrated/cross_species/cross_species_integrated/540_aqhumor_cross_species_integrated_mtx/"
+n_samples = c(1:500)
+
+#function calls: subset_combined_matrix(), run_pca(), and make_infile()
+scjack_sample <- make_scjack_sample_54(n_samples = n_samples, matrix_path = matrix_path)
+
+```
+
+
+### Create scjack parallel scripts
+Iteratively make 1-50 and 51-100 scjack scripts from a template input script.
+
+Template input script: in_script_scjack_parallel_540.sh
+```
+#!/bin/bash
+
+#run contml on infile_n
+#must not have an 'infile' indirectory - will replace with infile_n
+#must have an (empty) outfile and outtree so can set
+
+n=ITERATION_INDEX
+
+cd /contml
+
+echo "Run: ${n}"
+
+#create random seed for jumble
+RAND_NUM=$(shuf -i 1-2000000000 -n 1)
+random_seed=$(($RAND_NUM * 2 + 1))
+echo "seed: ${random_seed}"
+
+outfile_new="outfile_scjack_jumble_search_540_${n}_${random_seed}"
+outtree_new="outtree_scjack_jumble_search_540_${n}_${random_seed}"
+infile="./scjack_540_infiles/infile_scjackknife_540_final_${n}"
+
+echo "outfile: ${outfile_new}"
+echo "outtree: ${outtree_new}"
+echo "infile: ${infile}"
+
+printf "${infile}\nF\n${outfile_new}\nC\nJ\n${random_seed}\n100\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
+#test
+#printf "${infile}\nF\n${outfile_new}\nC\nJ\n${random_seed}\n2\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
+
+mv ${outtree_new} ./outtrees_scjack_jumble_search_540/${outtree_new}.tre
+mv ${outfile_new} ./outfiles_scjack_jumble_search_540/${outfile_new}.txt
+
+
+echo "Run ${n} complete"
+```
+
+Script to iteratively make repicate scripts from template: make_reps_scjack_parallel_540.sh
+```
+#!/bin/bash
+
+### Modified from script produced by ChatGPT Dec 9 2022.
+### Prompt: "Write a bash script that iteratively reads in a text file, copies and renames it a new iterative file name, and replaces a string in the file with the iteration index. Make it do it 100 times."
+
+# Set the starting iteration index
+index=1
+
+# Set the filename of the original file
+filename="in_script_scjack_parallel_540.sh"
+
+# Set the string to be replaced in the file
+replace="ITERATION_INDEX"
+
+# Set the prefix for the new iterative filenames
+new_filename_prefix="script_scjack_jumble_search_540_"
+
+# Set the suffix for the new iterative filenames
+new_filename_suffix=".sh"
+
+# Set the maximum number of iterations
+max_iterations=500
+
+
+# Iterate until the original file does not exist or the maximum number of iterations is reached
+while [ -f $filename ] && [ $index -le $max_iterations ]
+do
+  # Copy and rename the file with the current iteration index
+  #don't need to do this
+  #cp $filename $new_filename_prefix$index$new_filename_suffix
+
+  # Replace the string in the copied file with the iteration index
+  #sed -i "s/$replace/$index/g" $new_filename_prefix$index$new_filename_suffix
+  #sed command did not work. Remove -i flag, input old file, pipe sed output to new file.
+  sed "s/$replace/$index/g" $filename > $new_filename_prefix$index$new_filename_suffix
+  
+  #set permissions
+  chmod u+x $new_filename_prefix$index$new_filename_suffix
+  
+  # Increment the iteration index
+  index=$((index+1))
+  
+done
+
+```
+input:
+MD5 (in_script_scjack_parallel_540.sh) = 17a61e4a29de1f26383609f67caef08a
+MD5 (make_reps_scjack_parallel_540.sh) = febefdffb7aafb13ffb94466eca502c6
+
+output:
+MD5 (scjack_540_parallel_scripts.tar.gz) = 5499ba69fd577a6806a329cd7c0ebcc0
+
+Script for running scjack parallel: do preliminaries (making dirs etc) and run all scjack scripts in parallel: run_scjack_parallel_540.sh
+
+```
+#!/bin/bash
+
+#run Jumble in parallel
+#only want to set up directories once
+#need 1 empty outfile and outtree so you can indicate indiividual names for output files
+
+cd /contml
+
+mkdir outtrees_scjack_jumble_search_540
+mkdir outfiles_scjack_jumble_search_540
+
+#make an empty outfile and outtree so contml prompts for custom file names
+touch outfile
+touch outtree
+
+#ensure that there is no 'infile'. Will throw up error if already no infile.
+#rm infile
+
+echo "scjack jumble search preliminaries complete"
+
+#send in the command. Remove last `&`. #chatgpt
+
+#for i in {1..50}; do printf "./script_scjack_jumble_search_540_$i.sh & %.0s"; done
+
+#run the script 50 times in parallel
+./script_scjack_jumble_search_540_1.sh & ./script_scjack_jumble_search_540_2.sh & ./script_scjack_jumble_search_540_3.sh & ./script_scjack_jumble_search_540_4.sh & ./script_scjack_jumble_search_540_5.sh & ./script_scjack_jumble_search_540_6.sh & ./script_scjack_jumble_search_540_7.sh & ./script_scjack_jumble_search_540_8.sh & ./script_scjack_jumble_search_540_9.sh & ./script_scjack_jumble_search_540_10.sh & ./script_scjack_jumble_search_540_11.sh & ./script_scjack_jumble_search_540_12.sh & ./script_scjack_jumble_search_540_13.sh & ./script_scjack_jumble_search_540_14.sh & ./script_scjack_jumble_search_540_15.sh & ./script_scjack_jumble_search_540_16.sh & ./script_scjack_jumble_search_540_17.sh & ./script_scjack_jumble_search_540_18.sh & ./script_scjack_jumble_search_540_19.sh & ./script_scjack_jumble_search_540_20.sh & ./script_scjack_jumble_search_540_21.sh & ./script_scjack_jumble_search_540_22.sh & ./script_scjack_jumble_search_540_23.sh & ./script_scjack_jumble_search_540_24.sh & ./script_scjack_jumble_search_540_25.sh & ./script_scjack_jumble_search_540_26.sh & ./script_scjack_jumble_search_540_27.sh & ./script_scjack_jumble_search_540_28.sh & ./script_scjack_jumble_search_540_29.sh & ./script_scjack_jumble_search_540_30.sh & ./script_scjack_jumble_search_540_31.sh & ./script_scjack_jumble_search_540_32.sh & ./script_scjack_jumble_search_540_33.sh & ./script_scjack_jumble_search_540_34.sh & ./script_scjack_jumble_search_540_35.sh & ./script_scjack_jumble_search_540_36.sh & ./script_scjack_jumble_search_540_37.sh & ./script_scjack_jumble_search_540_38.sh & ./script_scjack_jumble_search_540_39.sh & ./script_scjack_jumble_search_540_40.sh & ./script_scjack_jumble_search_540_41.sh & ./script_scjack_jumble_search_540_42.sh & ./script_scjack_jumble_search_540_43.sh & ./script_scjack_jumble_search_540_44.sh & ./script_scjack_jumble_search_540_45.sh & ./script_scjack_jumble_search_540_46.sh & ./script_scjack_jumble_search_540_47.sh & ./script_scjack_jumble_search_540_48.sh & ./script_scjack_jumble_search_540_49.sh & ./script_scjack_jumble_search_540_50.sh
+
+echo "Commands 1-50 complete"
+
+#etc until Commands 451-500 complete
+
+echo "ALL COMMANDS COMPLETE"
+
+exit
+
+```
+MD5 (run_scjack_parallel_540.sh) = 0184bb194ed07fcd0a1a94f3e2de4165
+
+
+
+### Run Scjack parallel scripts:
+Run:
+```
+#new tmux session
+tmux new -s scjack_jumble_search_1
+
+sudo service docker start
+sudo docker run --rm --name contml -v /home/ec2-user/contml:/contml -it dunnlab/ubuntu-dev:20.04 /bin/bash 
+
+./run_scjack_parallel_540.sh | tee -a "run_scjack_parallel_540.log"
+
+
+```
+input: 
+MD5 (scjack_540_parallel_scripts.tar.gz) = 5499ba69fd577a6806a329cd7c0ebcc0
+MD5 (run_scjack_parallel_540.sh) = 0184bb194ed07fcd0a1a94f3e2de4165
+MD5 (scjack_540_infiles.tar.gz) = d7ba89a566941ea12b868ac8e532ea28
+
+output:
+MD5 (output_scjack_jumble_search_540.tar.gz) = a68946b9a0a48742be977442e9145a0c
+
+Remove errored out files
+```
+find . -type f -print| xargs grep "Ln Likelihood"| cut -d ":" -f 1| xargs -I '{}' cp '{}' ../outfiles_scjack_jumble_search_540_processed
+```
+Delete any empty tree files
+```
+find ./ -size 0 -print -delete
+```
+input:
+MD5 (output_scjack_jumble_search_540.tar.gz) = a68946b9a0a48742be977442e9145a0c
+
+output:
+MD5 (output_scjack_jumble_search_540_processed.tar.gz) = a7840d3b02c1d1e8aa8174c4a14dbba6
