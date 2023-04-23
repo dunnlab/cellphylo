@@ -90,11 +90,18 @@ This format is crucial as this information will be parsed repeatedly during cell
 ```{r wrangle-matrix-names}
 
 #convert cell identifiers to cellphylo format and create a new matrix with this new format
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_mouse", metadata_file = "ann/all_five_species_metafile_wrangled.csv" , species = "mouse")
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_pig", metadata_file = "ann/all_five_species_metafile_wrangled.csv" , species = "pig")
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_human", metadata_file = "ann/all_five_species_metafile_wrangled.csv" , species = "human")
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macF", metadata_file = "ann/all_five_species_metafile_wrangled.csv" , species = "macF")
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macM", metadata_file = "ann/all_five_species_metafile_wrangled.csv" , species = "macM")
+metadata_file = "ann/all_five_species_metafile_wrangled.csv" 
+
+#mouse
+wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_mouse", metadata_file = metadata_file, species = "mouse")
+#pig
+wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_pig", metadata_file = metadata_file, species = "pig")
+#human
+wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_human", metadata_file = metadata_file, species = "human")
+#macF
+wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macF", metadata_file = metadata_file, species = "macF")
+#macM
+wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macM", metadata_file = metadata_file, species = "macM")
 
 #check that cell ids are in cell phylo format
 colnames(wrangled_mat)
