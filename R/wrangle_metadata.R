@@ -1,21 +1,21 @@
 #' wrangle_metadata
 #'
+#' This function takes in the meta data file `all_five_species_metafile.csv` provided by van Zyl et al. (2020) and parses out the cell identifier, cluster id, sample id and cell barcode.
 #'
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate select
 #' @importFrom utils read.csv
 
 #' @param path_to_meta_file A path to the metadata file provided by van Zyl et al. (2020).
 #'
-#' @return meta_data A new file with metafile data parsed in preparation of creating cellphylo cell ids
+#' @return meta_data A data frame with columns for cell identifier, cluster id, sample id and cell barcode parsed from the meta data file.
 #' @export
 #'
 #' @examples
 #'
 #'
 #'
-wrangle_metadata <- function(path_to_meta_file){
+wrangle_metadata <- function(path_to_meta_file, print=TRUE){
 #library(tidyverse)
-
 
   #read in meta data file
   meta_data <- read.csv(path_to_meta_file, header=TRUE)
@@ -73,8 +73,10 @@ wrangle_metadata <- function(path_to_meta_file){
 
   #add annotations to meta data table
   meta_data <- meta_data  %>% mutate(cluster_id = cluster_id, sample_id = sample_id, cell_barcode = cell_barcode)
+  meta_data <- meta_data %>% select(cell_identifier, cluster_id, sample_id, cell_barcode)
+  #print out the wrangled meta data file
+  utils::write.table(meta_data, "./ann/all_five_species_metafile_wrangled.csv", quote=FALSE, sep = "\t", col.names=TRUE, row.names=FALSE)
 
-  utils::write.table(meta_data, "all_five_species_metafile_wrangled.csv", quote=FALSE, sep = "\t", col.names=TRUE, row.names=FALSE)
 
   return(meta_data)
 

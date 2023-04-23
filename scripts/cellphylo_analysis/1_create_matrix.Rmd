@@ -1,0 +1,45 @@
+---
+title: "Create_matrix"
+output: html_document
+date: "2023-04-22"
+---
+
+This notebook walks you through steps 1-7 (Fig. S1) of the cellphylo workflow created for Mah & Dunn 2023. 
+
+#Preliminaries
+```{r setup}
+#set working directories
+setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
+
+#load libraries
+
+```
+
+Create some directories
+```{r}
+
+# for meta data annotation files
+dir.create("./ann")
+# for the  matrices created during cellphylo analysis
+dir.create("./matrix")
+
+
+```
+
+## Wrangle data
+We use the single cell atlas from [van Zyl et al. (2020)](https://doi.org/10.1073/pnas.2001250117) as our pilot data.
+
+Download the meta data file provided by van Zyl et al. (2020): [all_five_species_metafile.csv](https://singlecell.broadinstitute.org/single_cell/study/SCP780/).
+This meta data file has information on sample ID, cell barcode and cluster ID (which corresponds to "cell type groups" in Mah & Dunn 2023).
+Deposit the meta data file in the `./ann` directory.
+
+Wrangle the meta data file. 
+```{r wrangle-metadata}
+
+wrangled_meta <- wrangle_metadata(path_to_meta_file="./ann/all_five_species_metafile.csv")
+
+```
+
+This creates and deposites `all_five_species_metafile_wrangled.csv` in the `ann` directory. This file has parsed out the cell identifier (used by van Zyl as the cell names in the UMI matriecs), cluster_id, sample_id and cell_barcode.
+
+
