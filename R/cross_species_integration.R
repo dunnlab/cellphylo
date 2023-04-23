@@ -21,7 +21,7 @@
 #'
 #' @examples
 
-cross_species_integration <- function(matrix_path, min_cells = 3, min_features = 200, k_weight=100, n_pcs=30, UMAP_dim = "1:30", FindNeighbors_dim="1:30", FindClusters_res = 0.5,  print=TRUE){
+cross_species_integration <- function(matrix_path, min_cells = 3, min_features = 200, k_weight=100, n_pcs=30, UMAP_dim = c(1:30), FindNeighbors_dim=c(1:30), FindClusters_res = 0.5,  print=TRUE){
 
 
   ### create Seurat object

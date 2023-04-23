@@ -10,8 +10,8 @@ cross_species_integration(
   min_features = 200,
   k_weight = 100,
   n_pcs = 30,
-  UMAP_dim = "1:30",
-  FindNeighbors_dim = "1:30",
+  UMAP_dim = c(1:30),
+  FindNeighbors_dim = c(1:30),
   FindClusters_res = 0.5,
   print = TRUE
 )
