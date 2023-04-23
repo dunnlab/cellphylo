@@ -4,7 +4,7 @@
 \alias{wrangle_metadata}
 \title{wrangle_metadata}
 \usage{
-wrangle_metadata(path_to_meta_file, print = TRUE)
+wrangle_metadata(path_to_meta_file)
 }
 \arguments{
 \item{path_to_meta_file}{A path to the metadata file provided by van Zyl et al. (2020).}

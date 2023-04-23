@@ -1,15 +1,23 @@
-#' within_species_integr
+#' within_species_integration
+#'
+#' This function normalizes counts using a negative binomial model (SCTransform) and performs within-species batch integration. UMI matrices must be in cellphyo format.
 #'
 #' @import Seurat
 #' @importFrom DropletUtils write10xCounts
 #'
 #' @param path_to_matrix Path to a species' matrix. Cell ids must be in cellphylo format.
+#' @param n_features The number of features to use for integration using Seurat::SelectIntegrationFeatures. Default is 3000, used in Mah & Dunn 2023.
+#' @param k_weight The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100, used in Mah & Dunn 2023.
+#' @print Boolean. Print out the Seurat object as an RDS file and extract and print out the pearson residuals, corrected UMI counts and integrated pearson residuals from the Seurat object.
 #'
-#' @return NULL RDS file of integrated Seurat object and 3 matrices in 10x format featuring values from the integrated Seurat object SCT assay "scale.data" slot (sct_pearson_residuals), SCT assay "counts" slot (sct_corrected_UMI_counts), and integrated assay "scale.data" slot (sct_integrated_pearson_residuals)
+#' @return combined.sct A Seurat object featuring the normalized and batch-integrated matrices.
+#' If print=TRUE, it will also print out:
+#' An RDS file of the Seurat object and 3 matrices in 10x format featuring values from the normalized and batch-integrated Seurat object: 1. sct_pearson_residuals (SCT assay "scale.data" slot), 2; sct_corrected_UMI_counts (SCT assay "counts" slot), 3.sct_integrated_pearson_residuals (integrated assay "scale.data" slot)
+#'
 #' @export
 #'
 #' @examples
-within_species_integr <- function(path_to_matrix){
+within_species_integration <- function(path_to_matrix, n_features=3000, k_weight = 100, print=TRUE){
 
 
   #load counts matrix
@@ -37,7 +45,7 @@ within_species_integr <- function(path_to_matrix){
   #seurat.obj.list <- lapply(X = seurat.obj.list, FUN = function(x){ x<- SCTransform(x, return.only.var.genes = FALSE, residual.features = NULL, min_cells = 1, conserve.memory = FALSE)})
   seurat.obj.list <- lapply(X = seurat.obj.list, FUN = function(x){ x<- SCTransform(x)})
 
-  features <- SelectIntegrationFeatures(object.list = seurat.obj.list, nfeatures=3000)
+  features <- SelectIntegrationFeatures(object.list = seurat.obj.list, nfeatures=n_features)
   seurat.obj.list <- PrepSCTIntegration(object.list = seurat.obj.list, anchor.features = features)
 
   anchors <- FindIntegrationAnchors(object.list = seurat.obj.list, normalization.method = "SCT", anchor.features = features)
@@ -47,10 +55,7 @@ within_species_integr <- function(path_to_matrix){
   all_genes <- seurat.obj.example@assays[["RNA"]] %>% row.names()
 
   #if samples have less than 100 cells must set k.weight < 100
-  combined.sct <- IntegrateData(anchorset = anchors, normalization.method = "SCT", k.weight=100, features.to.integrate = all_genes)
-
-  #save object
-  saveRDS(combined.sct, paste0("combined_sct_",species_name,".rds"))
+  combined.sct <- IntegrateData(anchorset = anchors, normalization.method = "SCT", k.weight=k_weight, features.to.integrate = all_genes)
 
   #save matrices
   #SCTransform pearson residuals
@@ -63,9 +68,34 @@ within_species_integr <- function(path_to_matrix){
   sct_integrated_pearson_residuals <- combined.sct[["integrated"]]@scale.data
   sct_integrated_pearson_residuals <- as.sparse(sct_integrated_pearson_residuals)
 
+  if (print==TRUE){
+  #save object
+  saveRDS(combined.sct, paste0("combined_sct_",species_name,".rds"))
+
   #write matrices
   write10xCounts(paste0("sct_pearson_residuals_mtx_", species_name), sct_pearson_residuals, version="3")
   write10xCounts(paste0("sct_corrected_UMIs_mtx_", species_name), sct_corrected_UMI_counts, version="3")
   write10xCounts(paste0("sct_integrated_pearson_residuals_mtx_", species_name), sct_integrated_pearson_residuals, version="3")
+
+  #create a matrix directory if doesn't already exist
+  if(!dir.exists("matrix")){
+    dir.create("matrix")
+  }
+
+  #create a directory for the within-species normalized and integrated matrices
+  if(!dir.exists("matrix/within-species_analysis")){
+    dir.create("matrix/within-species_analysis")
+  }
+
+  #move matrices into the directory
+  file.rename(paste0("sct_pearson_residuals_mtx_", species_name), paste0("matrix/within-species_analysis/sct_pearson_residuals_mtx_",species_name))
+  file.rename(paste0("sct_corrected_UMIs_mtx_", species_name), paste0("matrix/within-species_analysis/sct_corrected_UMIs_mtx_", species_name))
+  file.rename(paste0("sct_integrated_pearson_residuals_mtx_", species_name), paste0("matrix/within-species_analysis/sct_integrated_pearson_residuals_mtx_",species_name))
+
+
+  }
+
+  #return the normalized and integrated Seurat object
+  return(combined.sct)
 
 }

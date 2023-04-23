@@ -1,0 +1,36 @@
+---
+title: "Create Matrices"
+output: html_notebook
+---
+
+Run `1_wrangle_data.Rmd` to wrangle UMI matrices into cellphylo format (Fig. S1, step 1).
+
+This notebook walks you through Fig. S1, steps 2-7, of the cellphylo workflow created for Mah & Dunn 2023. 
+
+The steps are:  
+2. Normalization and 3. Within-species batch integration  
+4. Randomly subset matrices to 10 cells per cell type group  
+5. Combine all 5 species into a single matrix based on gene orthology  
+6. Cross-species integration  
+7. PCA: rotation of data  
+
+This will produe a 919 cell 919 PC matrix. This matrix is stored in the R object: xxx.  
+
+
+# Preliminaries
+```{r setup}
+#set working directory
+setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
+```
+
+
+# Steps 2 & 3: Normalization and Within-Species Integration  
+For each species, we use the Seurat workflow to normalize counts using a negative binomial model (via SCTransform) and integrate sequencing batches within each species.    
+
+```{r}
+
+
+
+
+
+```
