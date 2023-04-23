@@ -7,9 +7,9 @@
 wrangle_matrix(path_to_mat, metadata_file, species)
 }
 \arguments{
-\item{path_to_mat}{Path to matrix to be wrangled into cellphylo format}
+\item{path_to_mat}{Path to matrix to be wrangled into cellphylo format. Matrix must be in 10x format.}
 
-\item{metadata_file}{Metadata file from van Zyl et al. (2020)}
+\item{metadata_file}{Path to wrangled metadata file from van Zyl et al. (2020)}
 
 \item{species}{Name of species the matrix belongs to}
 }
@@ -17,5 +17,5 @@ wrangle_matrix(path_to_mat, metadata_file, species)
 mat A wrangled matrix with cell ids in cellphylo format
 }
 \description{
-wrangle_matrix
+Converts cell identifiers from van Zyl et al. (2020)'s format to cellphylo format.
 }

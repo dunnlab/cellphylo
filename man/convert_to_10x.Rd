@@ -9,11 +9,11 @@ convert_to_10x(path_to_csv, dir_name)
 \arguments{
 \item{path_to_csv}{Path to csv file}
 
-\item{dir_name}{Name for 10x matrix directory}
+\item{dir_name}{Name for the new 10x matrix directory}
 }
 \value{
 NULL a directory with a matrix in 10x format (version 3)
 }
 \description{
-convert_to_10x
+Converts a UMI count matrix in CSV format to 10x-style feature-barcode matrices.
 }

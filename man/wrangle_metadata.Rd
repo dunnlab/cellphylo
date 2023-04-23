@@ -4,14 +4,14 @@
 \alias{wrangle_metadata}
 \title{wrangle_metadata}
 \usage{
-wrangle_metadata(path_to_meta_file)
+wrangle_metadata(path_to_meta_file, print = TRUE)
 }
 \arguments{
 \item{path_to_meta_file}{A path to the metadata file provided by van Zyl et al. (2020).}
 }
 \value{
-meta_data A new file with metafile data parsed in preparation of creating cellphylo cell ids
+meta_data A data frame with columns for cell identifier, cluster id, sample id and cell barcode parsed from the meta data file.
 }
 \description{
-wrangle_metadata
+This function takes in the meta data file \code{all_five_species_metafile.csv} provided by van Zyl et al. (2020) and parses out the cell identifier, cluster id, sample id and cell barcode.
 }

@@ -1,12 +1,14 @@
 #' wrangle_matrix
 #'
+#' Converts cell identifiers from van Zyl et al. (2020)'s format to cellphylo format.
+#'
 #' @importFrom Seurat Read10X
 #' @importFrom DropletUtils write10xCounts
 #' @importFrom utils read.table
 #' @importFrom dplyr mutate left_join
 #'
-#' @param path_to_mat Path to matrix to be wrangled into cellphylo format
-#' @param metadata_file Metadata file from van Zyl et al. (2020)
+#' @param path_to_mat Path to matrix to be wrangled into cellphylo format. Matrix must be in 10x format.
+#' @param metadata_file Path to wrangled metadata file from van Zyl et al. (2020)
 #' @param species Name of species the matrix belongs to
 #'
 #' @return mat A wrangled matrix with cell ids in cellphylo format
@@ -42,6 +44,12 @@ wrangle_matrix <- function(path_to_mat, metadata_file, species){
 
   #write the new matrix
   write10xCounts(paste0("aqhumor_UMI_wrangled_",species), mat, version="3")
+
+  if(!dir.exists("matrix/wrangled")){
+    dir.create("matrix/wrangled")
+  }
+
+  file.rename(paste0("aqhumor_UMI_wrangled_",species), paste0("matrix/wrangled/aqhumor_UMI_wrangled_",species))
 
   return(mat)
 
