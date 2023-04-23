@@ -1,13 +1,11 @@
 #' cross_species_integration
 #'
-#' Integrate counts across species using the Seurat workflow. Default values are what were used in Mah & Dunn (2023)
+#' Integrate counts across species using the Seurat workflow. Parameters used in Mah & Dunn (2023) in the Seurat workflow are hard-coded into this function.
 #'
 #' @import Seurat
 #' @importFrom DropletUtils write10xCounts
 #'
 #' @param matrix_path Path to combined matrix. This combined matrix features cells from multiple species but is not yet cross-species integrated. This matrix was created using `cellphylo::combine_matrices`. Cell ids must be in cellphylo format.
-#' @param min_cells  Specify the min number of cells a feature must be expressed in to be retained. This is the min.cells option of Seurat::CreateSeuratObject. Default is 3.
-#' @param min_features Specaify the min number of features a cell must be expressed to be retained. This is the min.features option of Seurat::CreateSeuratObject. Default is 200.
 #' @param k_weight The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100.
 #' @param print Boolean. Print out the matrix and Seurat object of cross-species integrated data.
 #'
@@ -17,7 +15,7 @@
 #'
 #' @examples
 
-cross_species_integration <- function(matrix_path, min_cells = 3, min_features=200, k_weight=100,  print=TRUE){
+cross_species_integration <- function(matrix_path, k_weight=100,  print=TRUE){
 
 
   ### create Seurat object
@@ -25,7 +23,7 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features=2
   #read in combined species matrix aqhumor_combined_mtx
   mat <- Read10X(matrix_path)
   #qc: filter for min cells and min features
-  seurat.obj <- CreateSeuratObject(counts = mat, project="cross_species_integration", min.cells = min_cells, min.features=min_features)
+  seurat.obj <- CreateSeuratObject(counts = mat, project="cross_species_integration", min.cells = 3, min.features=200)
 
   #qc may have filtered out cells. Remove missing cells from mat
   #seurat cells - the cells in the seurat object that survived filtering min.cells=3, min.features=200
@@ -66,6 +64,12 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features=2
   combined <- IntegrateData(anchorset = anchors, k.weight=k_weight, features.to.integrate = all_genes)
 
 
+  combined<- ScaleData(combined, verbose=FALSE)
+  combined<- RunPCA(combined, npcs=30, verbose=FALSE)
+  combined<- RunUMAP(combined, reduction = "pca", dims=1:30)
+  combined<- FindNeighbors(combined, reduction = "pca", dims = 1:30)
+  combined<- FindClusters(combined, resolution=0.5)
+
   #Save data
   if (print==TRUE){
     #create a directory for the matrix if it doesn't already exist
@@ -76,7 +80,7 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features=2
     if(!dir.exists("matrix/cross-species_integration")){
       dir.create("matrix/cross-species_integration")
     }
-  saveRDS(combined, paste0("cross_species_integrated.rds"))
+  saveRDS(combined, "cross_species_integrated.rds")
   integrated<- combined[["integrated"]]@scale.data
   integrated <- as.sparse(integrated)
   write10xCounts("matrix_cross-species_integrated", integrated, version="3")

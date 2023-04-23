@@ -24,6 +24,7 @@ setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 
 #load libraries
 library(tidyverse)
+library(Seurat)
 ```
 
 
@@ -144,20 +145,20 @@ combined_matrix <- combine_matrices(matrix_list = matrix_list, ortholog_map_path
 This combined matrix is not yet cross-species integrated.
 
 ## Step 6. Cross-species integration
-Use the Seurat workflow to integrate counts across species.  
+Use the Seurat workflow to integrate counts across species. Default values for cellphylo::cross_species_integration are what was used for Mah & Dunn (2023).
 
 ```{r}
 
-combined <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined", print=TRUE)
-
+cross-species_int <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined", k_weight=100, print=TRUE)
 
 #let's visualize the cross-species integration
 
-combined <- ScaleData(combined, verbose=FALSE)
-combined <- RunPCA(combined, npcs=30, verbose=FALSE)
-combined <- RunUMAP(combined, reduction = "pca", dims=1:30)
-combined <- FindNeighbors(combined, reduction = "pca", dims = 1:30)
-combined <- FindClusters(combined, resolution=0.5)
+#plot
+p1 <- DimPlot(combined, reduction = "umap", group.by = "species_id")
+#cells cluster by cell type?
+p2 <- DimPlot(combined, reduction = "umap", group.by = "cell_type_id")
+#cell types in each species present in the same clusters across species?
+p3 <- DimPlot(combined, reduction = "umap", group.by = "cell_type_id", split.by = "species_id")
 
 ```
 
