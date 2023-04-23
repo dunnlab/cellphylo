@@ -14,7 +14,7 @@
 #'
 #'
 #'
-wrangle_metadata <- function(path_to_meta_file, print=TRUE){
+wrangle_metadata <- function(path_to_meta_file){
 #library(tidyverse)
 
   #read in meta data file
@@ -75,7 +75,13 @@ wrangle_metadata <- function(path_to_meta_file, print=TRUE){
   meta_data <- meta_data  %>% mutate(cluster_id = cluster_id, sample_id = sample_id, cell_barcode = cell_barcode)
   meta_data <- meta_data %>% select(cell_identifier, cluster_id, sample_id, cell_barcode)
   #print out the wrangled meta data file
-  utils::write.table(meta_data, "./ann/all_five_species_metafile_wrangled.csv", quote=FALSE, sep = "\t", col.names=TRUE, row.names=FALSE)
+  utils::write.table(meta_data, "all_five_species_metafile_wrangled.csv", quote=FALSE, sep = "\t", col.names=TRUE, row.names=FALSE)
+
+  if(!dir.exists("ann")){
+    dir.create("ann")
+  }
+
+  file.rename("all_five_species_metafile_wrangled.csv", "ann/all_five_species_metafile_wrangled.csv")
 
 
   return(meta_data)

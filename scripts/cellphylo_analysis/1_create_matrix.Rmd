@@ -21,9 +21,9 @@ Create some directories
 # for meta data annotation files
 dir.create("./ann")
 # for the  matrices created during cellphylo analysis
-dir.create("./matrix/raw")
+dir.create("./matrix")
+# dir for raw csv files of count matrices 
 dir.create("./matrix/raw_csv")
-dir.create("./matrix/10x")
 
 ```
 
