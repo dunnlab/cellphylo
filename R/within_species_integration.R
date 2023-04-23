@@ -75,9 +75,9 @@ within_species_integration <- function(path_to_matrix, n_features=3000, k_weight
   saveRDS(combined.sct, paste0("combined_sct_",species_name,".rds"))
 
   #write matrices
-  write10xCounts(paste0("sct_pearson_residuals_mtx_", species_name), sct_pearson_residuals, version="3")
-  write10xCounts(paste0("sct_corrected_UMIs_mtx_", species_name), sct_corrected_UMI_counts, version="3")
-  write10xCounts(paste0("sct_integrated_pearson_residuals_mtx_", species_name), sct_integrated_pearson_residuals, version="3")
+  write10xCounts(paste0("matrix_sct_pearson_residuals_", species_name), sct_pearson_residuals, version="3")
+  write10xCounts(paste0("matrix_sct_corrected_UMIs_", species_name), sct_corrected_UMI_counts, version="3")
+  write10xCounts(paste0("matrix_sct_integrated_pearson_residuals_", species_name), sct_integrated_pearson_residuals, version="3")
 
   #create a matrix directory if doesn't already exist
   if(!dir.exists("matrix")){
@@ -89,11 +89,21 @@ within_species_integration <- function(path_to_matrix, n_features=3000, k_weight
     dir.create("matrix/within-species_analysis")
   }
 
-  #move matrices into the directory
-  file.rename(paste0("sct_pearson_residuals_mtx_", species_name), paste0("matrix/within-species_analysis/sct_pearson_residuals_mtx_",species_name))
-  file.rename(paste0("sct_corrected_UMIs_mtx_", species_name), paste0("matrix/within-species_analysis/sct_corrected_UMIs_mtx_", species_name))
-  file.rename(paste0("sct_integrated_pearson_residuals_mtx_", species_name), paste0("matrix/within-species_analysis/sct_integrated_pearson_residuals_mtx_",species_name))
+  if(!dir.exists("matrix/within-species_analysis/pearson_residuals")){
+    dir.create("matrix/within-species_analysis/pearson_residuals")
+  }
 
+  if(!dir.exists("matrix/within-species_analysis/corrected_UMIs")){
+    dir.create("matrix/within-species_analysis/corrected_UMIs")
+  }
+
+  if(!dir.exists("matrix/within-species_analysis/integrated_pearson_residuals")){
+    dir.create("matrix/within-species_analysis/integrated_pearson_residuals")
+  }
+  #move matrices into the directory
+  file.rename(paste0("matrix_sct_pearson_residuals_", species_name), paste0("matrix/within-species_analysis/pearson_residuals/matrix_sct_pearson_residuals_",species_name))
+  file.rename(paste0("matrix_sct_corrected_UMIs_", species_name), paste0("matrix/within-species_analysis/corrected_UMIs/matrix_sct_corrected_UMIs_", species_name))
+  file.rename(paste0("matrix_sct_integrated_pearson_residuals_", species_name), paste0("matrix/within-species_analysis/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_",species_name))
 
   }
 

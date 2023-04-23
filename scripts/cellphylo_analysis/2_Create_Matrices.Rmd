@@ -8,9 +8,9 @@ Run `1_wrangle_data.Rmd` to wrangle UMI matrices into cellphylo format (Fig. S1,
 This notebook walks you through Fig. S1, steps 2-7, of the cellphylo workflow created for Mah & Dunn 2023. 
 
 The steps are:  
-2. Normalization and 3. Within-species batch integration  
-4. Randomly subset matrices to 10 cells per cell type group  
-5. Combine all 5 species into a single matrix based on gene orthology  
+2 & 3. Normalization and within-species integration
+4. Randomly subset matrices
+5. Combine matrices by gene orthology 
 6. Cross-species integration  
 7. PCA: rotation of data  
 
@@ -24,10 +24,15 @@ setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 ```
 
 
-# Steps 2 & 3: Normalization and Within-Species Integration  
+# Steps 2 & 3. Normalization and Within-species Integration  
+
 For each species, we use the Seurat workflow to normalize counts using a negative binomial model (via SCTransform) and integrate sequencing batches within each species.    
 
-Parameter values used by Mah & Dunn (2023) for `within_species_integration` are set as default:  
+This step is memory intensive and you may have to run this on an HPC cluster.  
+The human data set required 125 GiB RAM per CPU.  
+All other species' data sets required 50 Gib ram per CPU.
+
+Parameter values used by Mah & Dunn (2023) for `within_species_integration` are set as default.  
 
 ```{r}
 
@@ -45,5 +50,46 @@ mouse_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix
 
 #pig
 pig_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_pigF", n_features=3000, k_weight = 100, print=TRUE)
+
+```
+
+Moving forward, we want to use the matrix of integrated Pearson's residuals, labelled: `matrix_sct_integrated_pearson_residuals`.  
+
+#Step 4. Randomly subset matrices  
+
+## Identify the cell type with the fewest replicates
+To make later analyses computationally feasible, we randomly subset each species' matrix so that all cell type groups across all five species have the same number of replicates. This means subsetting to the smallest number of replicates displayed by any one cell type group.  
+
+```{r}
+
+count_replicates("matrix/within-species")
+
+```
+
+We determine that the cell type group with the smallest number of replicates are mouse B cells, with 10 cells.  
+
+## Subset the matrices 
+
+For each species, randomly subset the full matrix to 10 cells per cell type group.  
+```{r}
+#human
+subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_human", n_reps = 10, print=TRUE)
+#macF
+subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_macF", n_reps = 10, print=TRUE)
+#macM
+subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_macM", n_reps = 10, print=TRUE)
+#mouse
+subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_mouse", n_reps = 10, print=TRUE)
+#pig
+subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_pig", n_reps = 10, print=TRUE)
+
+```
+
+#Step 5. Combine matrices by gene orthology 
+Download the orthology table from [Ensembl Biomart]
+```{r}
+
+
+
 
 ```

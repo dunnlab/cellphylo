@@ -7,8 +7,11 @@
 count_replicates(path_to_dir)
 }
 \arguments{
-\item{path_to_dir}{Path to 10x matrix directory. Cell ids must be in cellphylo format.}
+\item{path_to_dir}{Path to a directory containing matrices (not the matrix folder itself). Matrix must be must in cellphylo format}
+}
+\value{
+For each matrix in the directory, prints out stats for the number of cell type groups, the number of replicates per cell type group and identifies the cell type group with the fewest number of replicates.
 }
 \description{
-count_replicates
+This function counts the number of replicates per cell type group.
 }
