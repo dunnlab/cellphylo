@@ -54,6 +54,8 @@ Download the raw UMi matrices from NCBI GEO database (GSE146188).
 
 Deposit these gzipped files in `matrix/raw_csv`.
 
+#### Convert csv files to 10x-style sparse matrices
+
 Convert the CSV files to 10x-style feature-barcode matrices. Sparse matrix format is easier to work with.
 ```{r convert-to-10x}
 
@@ -71,6 +73,7 @@ convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148374_MacaqueM_count_matrix.csv
 ```
 Matrices are deposited in `matrix/10x/`.
 
+#### Convert cell identifiers to cellphylo format
 
 Cell identifiers in the raw matrix are currently:
 <sample_id>_<cell_barcode>.
@@ -107,3 +110,6 @@ wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macM", meta
 colnames(wrangled_mat)
 
 ```
+
+#Within-species integration
+Fig. S1, steps x-x
