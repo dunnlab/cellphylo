@@ -71,8 +71,8 @@ subset_cells <- function(path_to_matrix, n_reps, print=TRUE){
   write.table(selected, paste0("subset_cells_list_", species, ".txt"), quote = FALSE, col.names = FALSE, row.names = FALSE)
   file.rename( paste0("subset_cells_list_", species, ".txt"),  paste0("matrix/subset/subset_cells_list/subset_cells_list_", species, ".txt"))
 
-  write10xCounts(paste0("matrix_subset_",n_reps,"_reps_", species), mat.sub, version="3")
-  file.rename(paste0("matrix_subset_",n_reps,"_reps_", species),  paste0("matrix/subset/matrix_subset_",n_reps,"_reps_", species))
+  write10xCounts(paste0("matrix_subset_",n_reps,"_rep_", species), mat.sub, version="3")
+  file.rename(paste0("matrix_subset_",n_reps,"_rep_", species),  paste0("matrix/subset/matrix_subset_",n_reps,"_rep_", species))
 
   }
 
