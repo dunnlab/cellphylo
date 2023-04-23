@@ -149,7 +149,7 @@ Use the Seurat workflow to integrate counts across species. Default values for c
 
 ```{r}
 
-cross-species_int <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined", k_weight=100, print=TRUE)
+cross-species_int <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined")
 
 #let's visualize the cross-species integration
 

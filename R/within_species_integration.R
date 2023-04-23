@@ -8,7 +8,7 @@
 #' @param path_to_matrix Path to a species' matrix. Cell ids must be in cellphylo format.
 #' @param n_features The number of features to use for integration using Seurat::SelectIntegrationFeatures. Default is 3000, used in Mah & Dunn 2023.
 #' @param k_weight The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100, used in Mah & Dunn 2023.
-#' @print Boolean. Print out the Seurat object as an RDS file and extract and print out the pearson residuals, corrected UMI counts and integrated pearson residuals from the Seurat object. These files will be deposited in `matrix/within-species_analysis`.
+#' @param print Boolean. Print out the Seurat object as an RDS file and extract and print out the pearson residuals, corrected UMI counts and integrated pearson residuals from the Seurat object. These files will be deposited in `matrix/within-species_analysis`.
 #'
 #' @return combined.sct A Seurat object featuring the normalized and batch-integrated matrices.
 #' If print=TRUE, it will also print out:

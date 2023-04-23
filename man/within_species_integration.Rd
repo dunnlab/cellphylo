@@ -17,6 +17,8 @@ within_species_integration(
 \item{n_features}{The number of features to use for integration using Seurat::SelectIntegrationFeatures. Default is 3000, used in Mah & Dunn 2023.}
 
 \item{k_weight}{The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100, used in Mah & Dunn 2023.}
+
+\item{print}{Boolean. Print out the Seurat object as an RDS file and extract and print out the pearson residuals, corrected UMI counts and integrated pearson residuals from the Seurat object. These files will be deposited in \code{matrix/within-species_analysis}.}
 }
 \value{
 combined.sct A Seurat object featuring the normalized and batch-integrated matrices.

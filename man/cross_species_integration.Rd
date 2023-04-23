@@ -4,12 +4,34 @@
 \alias{cross_species_integration}
 \title{cross_species_integration}
 \usage{
-cross_species_integration(matrix_path, k_weight = 100, print = TRUE)
+cross_species_integration(
+  matrix_path,
+  min_cells = 3,
+  min_features = 200,
+  k_weight = 100,
+  n_pcs = 30,
+  UMAP_dim = "1:30",
+  FindNeighbors_dim = "1:30",
+  FindClusters_res = 0.5,
+  print = TRUE
+)
 }
 \arguments{
 \item{matrix_path}{Path to combined matrix. This combined matrix features cells from multiple species but is not yet cross-species integrated. This matrix was created using \code{cellphylo::combine_matrices}. Cell ids must be in cellphylo format.}
 
+\item{min_cells}{input for the min.cells option of Seurat::CreateSeuratObject. Default is 3.}
+
+\item{min_features}{input for the min.features option of Seurat::CreateSeuratObject. Default is 200.}
+
 \item{k_weight}{The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100.}
+
+\item{n_pcs}{input for the npcs option of Seurat::RunPCA. Default is 30.}
+
+\item{UMAP_dim}{input for the dim option of Seurat:: RunUMAP. Default is 1:30.}
+
+\item{FindNeighbors_dim}{input for the dim option of Seurat::FindNeighbors. Default is 1:30.}
+
+\item{FindClusters_res}{input for the res option of Seurat::FindClusters. Default is 0.5.}
 
 \item{print}{Boolean. Print out the matrix and Seurat object of cross-species integrated data.}
 }
@@ -17,5 +39,5 @@ cross_species_integration(matrix_path, k_weight = 100, print = TRUE)
 combined The Seurat object containing the cross-species integrated matrix. Print=TRUE prints out the cross-species integrated matrix and an RDS file of the Seurat object that results from the Seurat integration workflow.
 }
 \description{
-Integrate counts across species using the Seurat workflow. Parameters used in Mah & Dunn (2023) in the Seurat workflow are hard-coded into this function.
+Integrate counts across species using the Seurat workflow. The default values for this function are the parameters for the Seurat workflow performed by Mah & Dunn (2023).
 }
