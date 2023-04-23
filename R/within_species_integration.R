@@ -17,6 +17,8 @@
 #' @export
 #'
 #' @examples
+#'
+
 within_species_integration <- function(path_to_matrix, n_features=3000, k_weight = 100, print=TRUE){
 
 

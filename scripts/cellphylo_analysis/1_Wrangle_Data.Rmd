@@ -59,16 +59,16 @@ Convert the CSV files to 10x-style feature-barcode matrices. Sparse matrix forma
 
 ```{r convert-to-10x}
 
-#mouse
-convert_to_10x(path_to_csv = "matrix/raw_csv/GSE146186_Mouse_count_matrix.csv.gz" , dir_name = "aqhumor_UMI_mouse")
-#pig
-convert_to_10x(path_to_csv = "matrix/raw_csv/GSE146187_Pig_count_matrix.csv.gz" , dir_name = "aqhumor_UMI_pig")
 #human
-convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148371_Human_count_matrix.csv.gz" , dir_name = "aqhumor_UMI_human")
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148371_Human_count_matrix.csv.gz" ,  species_name = "human")
 #macF
-convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148373_MacaF_count_matrix.csv.gz" , dir_name = "aqhumor_UMI_macF")
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148373_MacaF_count_matrix.csv.gz" ,  species_name = "macF")
 #macM 
-convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148374_MacaqueM_count_matrix.csv.gz" , dir_name = "aqhumor_UMI_macM")
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148374_MacaqueM_count_matrix.csv.gz", species_name = "macM")
+#mouse
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE146186_Mouse_count_matrix.csv.gz" , species_name = "mouse")
+#pig
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE146187_Pig_count_matrix.csv.gz" , species_name = "pig")
 
 ```
 Matrices are deposited in `matrix/10x/`.  
@@ -96,16 +96,18 @@ This format is crucial as this information will be parsed repeatedly during cell
 #convert cell identifiers to cellphylo format and create a new matrix with this new format
 metadata_file = "ann/all_five_species_metafile_wrangled.csv" 
 
-#mouse
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_mouse", metadata_file = metadata_file, species = "mouse")
-#pig
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_pig", metadata_file = metadata_file, species = "pig")
+
 #human
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_human", metadata_file = metadata_file, species = "human")
+wrangled_mat_human <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_human", metadata_file = metadata_file, species = "human")
 #macF
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macF", metadata_file = metadata_file, species = "macF")
+wrangled_mat_macF <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_macF", metadata_file = metadata_file, species = "macF")
 #macM
-wrangled_mat <- wrangle_matrix(path_to_mat = "matrix/10x/aqhumor_UMI_macM", metadata_file = metadata_file, species = "macM")
+wrangled_mat_macM <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_macM", metadata_file = metadata_file, species = "macM")
+#mouse
+wrangled_mat_mouse <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_mouse", metadata_file = metadata_file, species = "mouse")
+#pig
+wrangled_mat_pig <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_pig", metadata_file = metadata_file, species = "pig")
+
 
 #check that cell ids are in cell phylo format
 colnames(wrangled_mat)

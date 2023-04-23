@@ -4,15 +4,15 @@
 \alias{convert_to_10x}
 \title{convert_to_10x}
 \usage{
-convert_to_10x(path_to_csv, dir_name)
+convert_to_10x(path_to_csv, species_name)
 }
 \arguments{
 \item{path_to_csv}{Path to csv file}
 
-\item{dir_name}{Name for the new 10x matrix directory}
+\item{species_name}{Name of species matrix belongs to.}
 }
 \value{
-NULL a directory with a matrix in 10x format (version 3)
+sparse The matrix in sparse matrix format and a directory with a matrix in 10x feature-barcode format (version 3)
 }
 \description{
 Converts a UMI count matrix in CSV format to 10x-style feature-barcode matrices.

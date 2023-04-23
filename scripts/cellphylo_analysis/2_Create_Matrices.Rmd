@@ -27,10 +27,23 @@ setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 # Steps 2 & 3: Normalization and Within-Species Integration  
 For each species, we use the Seurat workflow to normalize counts using a negative binomial model (via SCTransform) and integrate sequencing batches within each species.    
 
+Parameter values used by Mah & Dunn (2023) for `within_species_integration` are set as default:  
+
 ```{r}
 
+#human
+human_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_humanF", n_features=3000, k_weight = 100, print=TRUE)
 
+#macF
+macF_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_macF", n_features=3000, k_weight = 100, print=TRUE)
 
+#macM
+macM_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_macM", n_features=3000, k_weight = 100, print=TRUE)
 
+#mouse
+mouse_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_mouse", n_features=3000, k_weight = 100, print=TRUE)
+
+#pig
+pig_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_pigF", n_features=3000, k_weight = 100, print=TRUE)
 
 ```

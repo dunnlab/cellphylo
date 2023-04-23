@@ -9,14 +9,14 @@
 #' @importFrom Seurat as.sparse
 #'
 #' @param path_to_csv Path to csv file
-#' @param dir_name Name for the new 10x matrix directory
+#' @param species_name Name of species matrix belongs to.
 #'
-#' @return NULL a directory with a matrix in 10x format (version 3)
+#' @return sparse The matrix in sparse matrix format and a directory with a matrix in 10x feature-barcode format (version 3)
 #' @export
 #'
 #' @examples
 #'
-convert_to_10x <- function(path_to_csv, dir_name){
+convert_to_10x <- function(path_to_csv, species_name){
 
   #gunzip
   unzipped <- gunzip(path_to_csv, remove=FALSE)
@@ -27,15 +27,21 @@ convert_to_10x <- function(path_to_csv, dir_name){
   #convert to sparse
   sparse <- as.sparse(csv)
   #write new 10x matrix
-  write10xCounts(dir_name, sparse, version="3")
+  write10xCounts(paste0("matrix_10x_", species_name), sparse, version="3")
+  #create a folder for matrices, if not already present
+  if(!dir.exists("matrix")){
+    dir.create("matrix")
+  }
   #create the 10x folder if not already present
   if(!dir.exists("matrix/10x")){
     dir.create("matrix/10x")
   }
   #move this file into the 10x folder
-  file.rename(dir_name, paste0("matrix/10x/",dir_name))
+  file.rename(paste0("matrix_10x_", species_name), paste0("matrix/10x/matrix_10x_", species_name))
   #remove expanded file
   remove_file <- gsub(".gz", "", path_to_csv)
   file.remove(remove_file)
+
+  return(sparse)
 } #close fun
 

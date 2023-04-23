@@ -43,13 +43,18 @@ wrangle_matrix <- function(path_to_mat, metadata_file, species){
   colnames(mat) <- names.df$new_cell_ids
 
   #write the new matrix
-  write10xCounts(paste0("aqhumor_UMI_wrangled_",species), mat, version="3")
+  write10xCounts(paste0("matrix_wrangled_",species), mat, version="3")
+
+  #create a folder for matrices, if not already present
+  if(!dir.exists("matrix")){
+    dir.create("matrix")
+  }
 
   if(!dir.exists("matrix/wrangled")){
     dir.create("matrix/wrangled")
   }
 
-  file.rename(paste0("aqhumor_UMI_wrangled_",species), paste0("matrix/wrangled/aqhumor_UMI_wrangled_",species))
+  file.rename(paste0("matrix_wrangled_",species), paste0("matrix/wrangled/matrix_wrangled_",species))
 
   return(mat)
 
