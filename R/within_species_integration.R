@@ -1,6 +1,6 @@
 #' within_species_integration
 #'
-#' This function normalizes counts using a negative binomial model (SCTransform) and performs within-species batch integration. UMI matrices must be in cellphyo format.
+#' This function normalizes counts using a negative binomial model (SCTransform) and performs within-species batch integration using the Seurat workflow. Matrices must be in cellphyo format.
 #'
 #' @import Seurat
 #' @importFrom DropletUtils write10xCounts
@@ -8,7 +8,7 @@
 #' @param path_to_matrix Path to a species' matrix. Cell ids must be in cellphylo format.
 #' @param n_features The number of features to use for integration using Seurat::SelectIntegrationFeatures. Default is 3000, used in Mah & Dunn 2023.
 #' @param k_weight The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100, used in Mah & Dunn 2023.
-#' @print Boolean. Print out the Seurat object as an RDS file and extract and print out the pearson residuals, corrected UMI counts and integrated pearson residuals from the Seurat object.
+#' @print Boolean. Print out the Seurat object as an RDS file and extract and print out the pearson residuals, corrected UMI counts and integrated pearson residuals from the Seurat object. These files will be deposited in `matrix/within-species_analysis`.
 #'
 #' @return combined.sct A Seurat object featuring the normalized and batch-integrated matrices.
 #' If print=TRUE, it will also print out:
@@ -72,7 +72,7 @@ within_species_integration <- function(path_to_matrix, n_features=3000, k_weight
 
   if (print==TRUE){
   #save object
-  saveRDS(combined.sct, paste0("combined_sct_",species_name,".rds"))
+  saveRDS(combined.sct, paste0("within_species_integrated_",species_name,".rds"))
 
   #write matrices
   write10xCounts(paste0("matrix_sct_pearson_residuals_", species_name), sct_pearson_residuals, version="3")
@@ -85,25 +85,25 @@ within_species_integration <- function(path_to_matrix, n_features=3000, k_weight
   }
 
   #create a directory for the within-species normalized and integrated matrices
-  if(!dir.exists("matrix/within-species_analysis")){
-    dir.create("matrix/within-species_analysis")
+  if(!dir.exists("matrix/within-species_norm_and_integration")){
+    dir.create("matrix/within-species_norm_and_integration")
   }
 
-  if(!dir.exists("matrix/within-species_analysis/pearson_residuals")){
-    dir.create("matrix/within-species_analysis/pearson_residuals")
+  if(!dir.exists("matrix/within-species_norm_and_integration/pearson_residuals")){
+    dir.create("matrix/within-species_norm_and_integration/pearson_residuals")
   }
 
-  if(!dir.exists("matrix/within-species_analysis/corrected_UMIs")){
-    dir.create("matrix/within-species_analysis/corrected_UMIs")
+  if(!dir.exists("matrix/within-species_norm_and_integration/corrected_UMIs")){
+    dir.create("matrix/within-species_norm_and_integration/corrected_UMIs")
   }
 
-  if(!dir.exists("matrix/within-species_analysis/integrated_pearson_residuals")){
-    dir.create("matrix/within-species_analysis/integrated_pearson_residuals")
+  if(!dir.exists("matrix/within-species_norm_and_integration/integrated_pearson_residuals")){
+    dir.create("matrix/within-species_norm_and_integration/integrated_pearson_residuals")
   }
   #move matrices into the directory
-  file.rename(paste0("matrix_sct_pearson_residuals_", species_name), paste0("matrix/within-species_analysis/pearson_residuals/matrix_sct_pearson_residuals_",species_name))
-  file.rename(paste0("matrix_sct_corrected_UMIs_", species_name), paste0("matrix/within-species_analysis/corrected_UMIs/matrix_sct_corrected_UMIs_", species_name))
-  file.rename(paste0("matrix_sct_integrated_pearson_residuals_", species_name), paste0("matrix/within-species_analysis/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_",species_name))
+  file.rename(paste0("matrix_sct_pearson_residuals_", species_name), paste0("matrix/within-species_norm_and_integration/pearson_residuals/matrix_sct_pearson_residuals_",species_name))
+  file.rename(paste0("matrix_sct_corrected_UMIs_", species_name), paste0("matrix/within-species_norm_and_integration/corrected_UMIs/matrix_sct_corrected_UMIs_", species_name))
+  file.rename(paste0("matrix_sct_integrated_pearson_residuals_", species_name), paste0("matrix/within-species_norm_and_integration/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_",species_name))
 
   }
 

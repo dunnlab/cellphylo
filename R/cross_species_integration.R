@@ -1,15 +1,23 @@
 #' cross_species_integration
 #'
+#' Integrate counts across species using the Seurat workflow. Default values are what were used in Mah & Dunn (2023)
+#'
 #' @import Seurat
 #' @importFrom DropletUtils write10xCounts
 #'
-#' @param matrix_path Path to combined cross-species, unintegrated matrix produced by cellphylo::combine_matrices. Cell ids must be in cellphylo format.
+#' @param matrix_path Path to combined matrix. This combined matrix features cells from multiple species but is not yet cross-species integrated. This matrix was created using `cellphylo::combine_matrices`. Cell ids must be in cellphylo format.
+#' @param min_cells  Specify the min number of cells a feature must be expressed in to be retained. This is the min.cells option of Seurat::CreateSeuratObject. Default is 3.
+#' @param min_features Specaify the min number of features a cell must be expressed to be retained. This is the min.features option of Seurat::CreateSeuratObject. Default is 200.
+#' @param k_weight The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100.
+#' @param print Boolean. Print out the matrix and Seurat object of cross-species integrated data.
 #'
-#' @return combined The Seurat object containing the cross-species integrated matrix.
+#' @return combined The Seurat object containing the cross-species integrated matrix. Print=TRUE prints out the cross-species integrated matrix and an RDS file of the Seurat object that results from the Seurat integration workflow.
+#'
 #' @export
 #'
 #' @examples
-cross_species_integration <- function(matrix_path){
+
+cross_species_integration <- function(matrix_path, min_cells = 3, min_features=200, k_weight=100,  print=TRUE){
 
 
   ### create Seurat object
@@ -17,7 +25,7 @@ cross_species_integration <- function(matrix_path){
   #read in combined species matrix aqhumor_combined_mtx
   mat <- Read10X(matrix_path)
   #qc: filter for min cells and min features
-  seurat.obj <- CreateSeuratObject(counts = mat, project="cross_species_integration", min.cells = 3, min.features=200)
+  seurat.obj <- CreateSeuratObject(counts = mat, project="cross_species_integration", min.cells = min_cells, min.features=min_features)
 
   #qc may have filtered out cells. Remove missing cells from mat
   #seurat cells - the cells in the seurat object that survived filtering min.cells=3, min.features=200
@@ -55,22 +63,28 @@ cross_species_integration <- function(matrix_path){
   seurat.obj.example <- seurat.obj.list[[1]]
   all_genes <- seurat.obj.example@assays[["RNA"]] %>% row.names()
 
-  combined <- IntegrateData(anchorset = anchors, k.weight=100, features.to.integrate = all_genes)
+  combined <- IntegrateData(anchorset = anchors, k.weight=k_weight, features.to.integrate = all_genes)
 
-
-  ### Visualize
-
-  combined <- ScaleData(combined, verbose=FALSE)
-  combined <- RunPCA(combined, npcs=30, verbose=FALSE)
-  combined <- RunUMAP(combined, reduction = "pca", dims=1:30)
-  combined <- FindNeighbors(combined, reduction = "pca", dims = 1:30)
-  combined <- FindClusters(combined, resolution=0.5)
 
   #Save data
+  if (print==TRUE){
+    #create a directory for the matrix if it doesn't already exist
+    if(!dir.exists("matrix")){
+      dir.create("matrix")
+    }
+    #create a directory for the cross-species integrated matrix
+    if(!dir.exists("matrix/cross-species_integration")){
+      dir.create("matrix/cross-species_integration")
+    }
   saveRDS(combined, paste0("cross_species_integrated.rds"))
   integrated<- combined[["integrated"]]@scale.data
   integrated <- as.sparse(integrated)
-  write10xCounts("aqhumor_cross_species_integrated_mtx", integrated, version="3")
+  write10xCounts("matrix_cross-species_integrated", integrated, version="3")
+  #move the matrix into the folder
+  file.rename("matrix_cross-species_integrated", "matrix/cross-species_integration/matrix_cross-species_integrated")
+
+
+  }
 
   return(combined)
 

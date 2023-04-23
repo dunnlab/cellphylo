@@ -4,18 +4,18 @@
 \alias{combine_matrices}
 \title{combine_matrices}
 \usage{
-combine_matrices(matrix_list, ortholog_map_path, combined_mat_name)
+combine_matrices(matrix_list, ortholog_map_path, print = TRUE)
 }
 \arguments{
 \item{matrix_list}{A list of the full paths to the matrices you want to combine. Cell ids must be in cellphylo format.}
 
-\item{ortholog_map_path}{Path to wrangled Ensembl orthologs file. The custom script for wrangling the raw Ensembl orthologs file can be found in wrangle_Ensembl_orthologs.Rmd.}
+\item{ortholog_map_path}{Path to wrangled Ensembl orthologs file.}
 
-\item{combined_mat_name}{Name for the combined matrix this function produces. Cell ids are in cellphylo format.}
+\item{print}{Boolean. Print out the combined matrix.}
 }
 \value{
-full_join_sparse The cross-species combined matrix in sparse matrix format
+full_join_sparse The combined matrix in sparse matrix format. If print=TRUE, it will print out the combined matrix and deposit it in \code{matrix/cross-species_analysis/combined_by_orthology}
 }
 \description{
-Takes in multiple species matrices and combines them into a single multi-species matrix combined by gene id. This combined matrix is NOT cross-species normalized yet.
+Takes in multiple species' matrices and combines them into a single multi-species matrix combined by gene orthology. This combined matrix is NOT cross-species normalized yet.
 }

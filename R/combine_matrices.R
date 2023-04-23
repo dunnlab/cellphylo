@@ -1,6 +1,6 @@
 #' combine_matrices
 #'
-#' Takes in multiple species matrices and combines them into a single multi-species matrix combined by gene id. This combined matrix is NOT cross-species normalized yet.
+#' Takes in multiple species' matrices and combines them into a single multi-species matrix combined by gene orthology. This combined matrix is NOT cross-species normalized yet.
 #'
 #' @import dplyr
 #' @importFrom Seurat Read10X as.sparse
@@ -11,14 +11,15 @@
 #' @importFrom stats na.omit
 #'
 #' @param matrix_list  A list of the full paths to the matrices you want to combine. Cell ids must be in cellphylo format.
-#' @param ortholog_map_path Path to wrangled Ensembl orthologs file. The custom script for wrangling the raw Ensembl orthologs file can be found in wrangle_Ensembl_orthologs.Rmd.
-#' @param combined_mat_name Name for the combined matrix this function produces. Cell ids are in cellphylo format.
+#' @param ortholog_map_path Path to wrangled Ensembl orthologs file.
+#' @param print Boolean. Print out the combined matrix.
 #'
-#' @return full_join_sparse The cross-species combined matrix in sparse matrix format
+#' @return full_join_sparse The combined matrix in sparse matrix format. If print=TRUE, it will print out the combined matrix and deposit it in `matrix/cross-species_analysis/combined_by_orthology`
 #' @export
 #'
 #' @examples
-combine_matrices <- function(matrix_list, ortholog_map_path, combined_mat_name){
+#'
+combine_matrices <- function(matrix_list, ortholog_map_path, print=TRUE){
 
   ensembl_map_final <- read_tsv(ortholog_map_path)
   species_cols <- ensembl_map_final[, !names(ensembl_map_final) %in% "gene_identifier"] %>% colnames()
@@ -62,8 +63,24 @@ combine_matrices <- function(matrix_list, ortholog_map_path, combined_mat_name){
   full_join_noNA <- na.omit(full_join)
 
   full_join_sparse <- as.sparse(full_join_noNA)
-  write10xCounts(combined_mat_name, full_join_sparse, version="3")
 
+  if(print==TRUE){
+
+    #create a matrix directory if doesn't already exist
+    if(!dir.exists("matrix")){
+      dir.create("matrix")
+    }
+
+    #create a directory for the combined matrix
+    if(!dir.exists("matrix/combined_by_orthology")){
+      dir.create("matrix/combined_by_orthology")
+    }
+
+  write10xCounts("matrix_combined", full_join_sparse, version="3")
+  #move matrix to its own folder
+  file.rename("matrix_combined", "matrix/combined_by_orthology/matrix_combined")
+
+  }
   return(full_join_sparse)
 
 } #end function

@@ -27,7 +27,10 @@ library(tidyverse)
 ```
 
 
-# Steps 2 & 3. Normalization and Within-species Integration  
+# Within-species Analysis
+The within-species analysis is performed separately for each species. 
+
+## Steps 2 & 3. Normalization and Within-species Integration  
 
 For each species, we use the Seurat workflow to normalize counts using a negative binomial model (via SCTransform) and integrate sequencing batches within each species.    
 
@@ -58,9 +61,9 @@ pig_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_w
 
 Moving forward, we want to use the matrix of integrated Pearson's residuals, labelled: `matrix_sct_integrated_pearson_residuals`.  
 
-#Step 4. Randomly subset matrices  
+## Step 4. Randomly subset matrices  
 
-## Identify the cell type with the fewest replicates
+### Identify the cell type with the fewest replicates
 To make later analyses computationally feasible, we randomly subset each species' matrix so that all cell type groups across all five species have the same number of replicates. This means subsetting to the smallest number of replicates displayed by any one cell type group.  
 
 ```{r}
@@ -71,7 +74,7 @@ count_replicates("matrix/within-species")
 
 We determine that the cell type group with the smallest number of replicates are mouse B cells, with 10 cells.  
 
-## Subset the matrices 
+### Subset the matrices 
 
 For each species, randomly subset the full matrix to 10 cells per cell type group.  
 ```{r}
@@ -88,10 +91,13 @@ subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pears
 
 ```
 
-#Step 5. Combine matrices by gene orthology 
+# Cross-species Analysis
+The cross-species analysis is performed on a combined matrix of all five species (Fig. S1, steps 5-7).
+
+## Step 5. Combine matrices by gene orthology 
 We will combine the species matrix into a single matrix based on shared orthlogs.  
 
-## Wrangle the orthlogs table  
+### Wrangle the orthlogs table  
 
 Gene symbols vary between species. We need to create a mapping between gene symbols before we can combine the species' matrices by gene orthology. We will obtain this mapping from [Ensembl Biomart](https://www.ensembl.org/biomart/martview/).  
 
@@ -122,4 +128,37 @@ write.table(ensembl_map_final, file = "ann/AqHumor_ensembl_orthologs_wrangled.ts
 
 This produces `AqHumor_ensembl_orthologs_wrangled.tsv` and TSV table mapping gene symbols across species. We use the generic gene_identifier (gene-1, gene-2...) moving forward.
 
-## 
+### Combine all five species' matrices by shared orthologs
+Combine the subsetted matrices by shared orthlogs.  
+
+```{r}
+
+matrix_dir_path <- "matrix/subset/"
+matrix_list <- c(paste0(matrix_dir_path,"matrix_subset_10_rep_human/"),paste0(matrix_dir_path,"matrix_subset_10_rep_macF/"),paste0(matrix_dir_path,"matrix_subset_10_rep_macM"),paste0(matrix_dir_path,"matrix_subset_10_rep_mouse/"),paste0(matrix_dir_path,"matrix_subset_10_rep_pig/"))
+
+
+combined_matrix <- combine_matrices(matrix_list = matrix_list, ortholog_map_path = "ann/AqHumor_ensembl_orthologs_wrangled.tsv", print=TRUE)
+
+```
+
+This combined matrix is not yet cross-species integrated.
+
+## Step 6. Cross-species integration
+Use the Seurat workflow to integrate counts across species.  
+
+```{r}
+
+combined <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined", print=TRUE)
+
+
+#let's visualize the cross-species integration
+
+combined <- ScaleData(combined, verbose=FALSE)
+combined <- RunPCA(combined, npcs=30, verbose=FALSE)
+combined <- RunUMAP(combined, reduction = "pca", dims=1:30)
+combined <- FindNeighbors(combined, reduction = "pca", dims = 1:30)
+combined <- FindClusters(combined, resolution=0.5)
+
+```
+
+

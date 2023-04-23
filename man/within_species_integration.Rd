@@ -24,5 +24,5 @@ If print=TRUE, it will also print out:
 An RDS file of the Seurat object and 3 matrices in 10x format featuring values from the normalized and batch-integrated Seurat object: 1. sct_pearson_residuals (SCT assay "scale.data" slot), 2; sct_corrected_UMI_counts (SCT assay "counts" slot), 3.sct_integrated_pearson_residuals (integrated assay "scale.data" slot)
 }
 \description{
-This function normalizes counts using a negative binomial model (SCTransform) and performs within-species batch integration. UMI matrices must be in cellphyo format.
+This function normalizes counts using a negative binomial model (SCTransform) and performs within-species batch integration using the Seurat workflow. Matrices must be in cellphyo format.
 }

@@ -4,14 +4,28 @@
 \alias{cross_species_integration}
 \title{cross_species_integration}
 \usage{
-cross_species_integration(matrix_path)
+cross_species_integration(
+  matrix_path,
+  min_cells = 3,
+  min_features = 200,
+  k_weight = 100,
+  print = TRUE
+)
 }
 \arguments{
-\item{matrix_path}{Path to combined cross-species, unintegrated matrix produced by cellphylo::combine_matrices. Cell ids must be in cellphylo format.}
+\item{matrix_path}{Path to combined matrix. This combined matrix features cells from multiple species but is not yet cross-species integrated. This matrix was created using \code{cellphylo::combine_matrices}. Cell ids must be in cellphylo format.}
+
+\item{min_cells}{Specify the min number of cells a feature must be expressed in to be retained. This is the min.cells option of Seurat::CreateSeuratObject. Default is 3.}
+
+\item{min_features}{Specaify the min number of features a cell must be expressed to be retained. This is the min.features option of Seurat::CreateSeuratObject. Default is 200.}
+
+\item{k_weight}{The k.weight to use with Seurat::IntegrateData. This must be less than or equal to the number of cells in the smallest batch. Default is 100.}
+
+\item{print}{Boolean. Print out the matrix and Seurat object of cross-species integrated data.}
 }
 \value{
-combined The Seurat object containing the cross-species integrated matrix.
+combined The Seurat object containing the cross-species integrated matrix. Print=TRUE prints out the cross-species integrated matrix and an RDS file of the Seurat object that results from the Seurat integration workflow.
 }
 \description{
-cross_species_integration
+Integrate counts across species using the Seurat workflow. Default values are what were used in Mah & Dunn (2023)
 }
