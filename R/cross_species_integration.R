@@ -60,10 +60,12 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features =
 
   seurat.obj.list <- SplitObject(seurat.obj, split.by = "species_id")
 
+
   features <- SelectIntegrationFeatures(object.list = seurat.obj.list)
 
   anchors <- FindIntegrationAnchors(object.list = seurat.obj.list, anchor.features = features)
 
+  #repeatable no matter what object you choose.
   seurat.obj.example <- seurat.obj.list[[1]]
   all_genes <- seurat.obj.example@assays[["RNA"]] %>% row.names()
 
@@ -76,6 +78,9 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features =
   combined<- FindNeighbors(combined, reduction = "pca", dims = FindNeighbors_dim)
   combined<- FindClusters(combined, resolution=FindClusters_res)
 
+  integrated<- combined[["integrated"]]@scale.data
+  integrated <- as.sparse(integrated)
+
   #Save data
   if (print==TRUE){
     #create a directory for the matrix if it doesn't already exist
@@ -87,8 +92,6 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features =
       dir.create("matrix/cross-species_integration")
     }
   saveRDS(combined, "cross_species_integrated.rds")
-  integrated<- combined[["integrated"]]@scale.data
-  integrated <- as.sparse(integrated)
   write10xCounts("matrix_cross-species_integrated", integrated, version="3")
   #move the matrix into the folder
   file.rename("matrix_cross-species_integrated", "matrix/cross-species_integration/matrix_cross-species_integrated")

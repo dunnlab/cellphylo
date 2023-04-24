@@ -28,7 +28,7 @@ library(Seurat)
 ```
 
 
-# Within-species Analysis
+# Within-Species Analysis
 The within-species analysis is performed separately for each species. 
 
 ## Steps 2 & 3. Normalization and Within-species Integration  
@@ -135,7 +135,10 @@ Combine the subsetted matrices by shared orthlogs.
 ```{r}
 
 matrix_dir_path <- "matrix/subset/"
-matrix_list <- c(paste0(matrix_dir_path,"matrix_subset_10_rep_human/"),paste0(matrix_dir_path,"matrix_subset_10_rep_macF/"),paste0(matrix_dir_path,"matrix_subset_10_rep_macM"),paste0(matrix_dir_path,"matrix_subset_10_rep_mouse/"),paste0(matrix_dir_path,"matrix_subset_10_rep_pig/"))
+
+#matrix_list <- c(paste0(matrix_dir_path,"matrix_subset_10_rep_macM"),paste0(matrix_dir_path,"matrix_subset_10_rep_macF/"),paste0(matrix_dir_path,"matrix_subset_10_rep_mouse"),paste0(matrix_dir_path,"matrix_subset_10_rep_pig/"),paste0(matrix_dir_path,"matrix_subset_10_rep_human/"))
+
+matrix_list <- c(paste0(matrix_dir_path,"matrix_subset_10_rep_human"),paste0(matrix_dir_path,"matrix_subset_10_rep_macF/"),paste0(matrix_dir_path,"matrix_subset_10_rep_macM"),paste0(matrix_dir_path,"matrix_subset_10_rep_mouse/"),paste0(matrix_dir_path,"matrix_subset_10_rep_pig/"))
 
 
 combined_matrix <- combine_matrices(matrix_list = matrix_list, ortholog_map_path = "ann/AqHumor_ensembl_orthologs_wrangled.tsv", print=TRUE)
@@ -144,21 +147,24 @@ combined_matrix <- combine_matrices(matrix_list = matrix_list, ortholog_map_path
 
 This combined matrix is not yet cross-species integrated.
 
-## Step 6. Cross-species integration
+## Step 6. Cross-Species integration
 Use the Seurat workflow to integrate counts across species. Default values for cellphylo::cross_species_integration are what was used for Mah & Dunn (2023).
 
 ```{r}
 
-cross-species_int <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined")
+cross_species_int <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined")
 
 #let's visualize the cross-species integration
-
 #plot
-p1 <- DimPlot(combined, reduction = "umap", group.by = "species_id")
+#species intermingled?
+p1 <- DimPlot(cross_species_int, reduction = "umap", group.by = "species_id")
+p1
 #cells cluster by cell type?
-p2 <- DimPlot(combined, reduction = "umap", group.by = "cell_type_id")
+p2 <- DimPlot(cross_species_int, reduction = "umap", group.by = "cell_type_id")
+p2
 #cell types in each species present in the same clusters across species?
-p3 <- DimPlot(combined, reduction = "umap", group.by = "cell_type_id", split.by = "species_id")
+p3 <- DimPlot(cross_species_int, reduction = "umap", group.by = "cell_type_id", split.by = "species_id")
+p3
 
 ```
 
