@@ -177,3 +177,20 @@ saveRDS(immune.combined, "tutorial_ifnb_CTRL_first_2.rds")
   CTRL_integrated_dat["HBB", "AAACATACATTTCC.1"] #-0.06415531
   STIM_integrated_reorder_dat["HBB", "AAACATACATTTCC.1"] #0.02116652
 ```
+
+IntegrateData settings used above and in my workflow are the defaults for:
+sample.tree = NULL  
+preserve.order=FALSE  
+
+In output saw:
+-Same order of merging
+-Different number of anchors found by FindIntegrationAnchors
+
+#CTRL_first
+Found 16393 anchors
+Merging data set 1 into 2
+
+#STIM_first
+Found 16390 anchors
+Merging data set 2 into 1
+
