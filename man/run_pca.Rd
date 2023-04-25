@@ -4,24 +4,24 @@
 \alias{run_pca}
 \title{run_pca}
 \usage{
-run_pca(matrix_path, n_PCs, subset, subset_file_path, print)
+run_pca(matrix_path, n_PCs = 20, subset, subset_file_path, print = TRUE)
 }
 \arguments{
-\item{matrix_path}{Path to full combined cross-species integrated matrix to perform PCA on}
+\item{matrix_path}{Path to matrix to perform PCA on}
 
-\item{n_PCs}{Number of principal components to retain}
+\item{n_PCs}{Number of principal components to reduce rank to}
 
-\item{subset}{A list of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates.}
+\item{subset}{A list of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates. If no subset list is provided all cells are kept.}
 
 \item{subset_file_path}{A text file containing a single column of cell ids to subsample from the input matrix and retain in the resulting PCA matrix this function creates.}
 
 \item{print}{Print out the PCA matrix}
 }
 \value{
-mat.sparse A matrix PCA has been performed on. This matrix may have subsetted from the full PCA matrix calculated from the input matrix by number of PCs and cell subset to retain.
+mat.sparse A matrix PCA has been performed on in sparse matrix format. This matrix may have subsetted from the full PCA matrix calculated from the input matrix by number of PCs and cell subset to retain.
 }
 \description{
 Centres the value of a matrix around the mean, performs PCA on this matrix and normalizes variance by the standard deviation.
 The number of principal components to retain in the final PCA matrix may be indicated with the "n_PCs" option.
-It is recommended that PCA be performed on the full, integrated unsubsampled matrix.The final PCA matrix may subset to a list of cells specified by the user by the `"subset" or "subset_file_path" option.
+It is recommended that PCA be performed on the full, integrated unsubsampled matrix. The final PCA matrix may subset to a list of cells specified by the user by the `"subset" or "subset_file_path" option.
 }

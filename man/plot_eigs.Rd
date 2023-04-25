@@ -4,11 +4,18 @@
 \alias{plot_eigs}
 \title{plot_eigs}
 \usage{
-plot_eigs(matrix_path)
+plot_eigs(matrix_path, highlight = 20, print = TRUE)
 }
 \arguments{
 \item{matrix_path}{Path to matrix PCA is to be performed on.}
+
+\item{highlight}{The number of the PC you would like to highlihgt in the plot. The dot representing this PC will be highlighted in red. Default is PC20, used in Mah & Dunn (2023)}
+
+\item{print}{Boolean. Print out plots.}
+}
+\value{
+plots A list containing the four eigenvalue plots as ggplot objects
 }
 \description{
-Perform PCA and produce eigenvalue plots for a matrix.
+Perform PCA and produce eigenvalue plots for a matrix. These plots are 1) eigenvalue vs PC, 2) eigenvalue cumulative sum, 3) eigenvalue vs percent variance, and 4) percent variance vs PC.
 }
