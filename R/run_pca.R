@@ -61,7 +61,7 @@ run_pca <- function(matrix_path, n_PCs=20, subset, subset_file_path, print=TRUE)
   }
 
   x.sub <- x_norm[rownames(x_norm) %in% selected,]
-  print(paste0("Subsetted ", nrow(mat), "cells to ", nrow(x.sub), " cells."))
+  print(paste0("Subsetted ", nrow(mat), " cells to ", nrow(x.sub), " cells."))
 
   #write matrix
   mat.sparse <- as.sparse(x.sub)

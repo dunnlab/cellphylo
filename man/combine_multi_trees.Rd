@@ -7,7 +7,7 @@
 combine_multi_trees(tree_dir_path)
 }
 \arguments{
-\item{tree_dir_path}{Path to directory containing multiple trees to combine}
+\item{tree_dir_path}{Path to directory containing the trees to combine into a multiphylo object. These tree files should be in newick format.}
 }
 \value{
 multi_tree A multiphylo object of all trees in the tree_dir_path directory

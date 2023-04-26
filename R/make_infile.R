@@ -6,11 +6,11 @@
 #' @importFrom Seurat Read10X
 #' @importFrom utils write.table
 
-#' @param matrix Matrix to create contml infile from
-#' @param matrix_path Path to matrix to create contml infile from
+#' @param matrix Matrix to create contml infile from. Use this if you have the matrix as an R object.
+#' @param matrix_path Path to matrix to create contml infile from. Use this if you have a printed matrix in 10x feature-barcode format.
 #' @param print Print the infile
 #'
-#' @return An object representing a matrix formatted in contml infile format.
+#' @return An object representing a matrix formatted in contml infile format. Contml requires a printed infile so print=TRUE is recommended.
 #' @export
 #'
 #' @examples

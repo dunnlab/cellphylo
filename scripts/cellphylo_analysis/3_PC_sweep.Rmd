@@ -1,0 +1,35 @@
+---
+title: "3_PC_sweep_exp"
+output: html_document
+date: "2023-04-25"
+---
+
+This notebook outlines how to reproduce the PC sweep experiment (Fig. 2, Mah & Dunn 2023).
+To perform the PC sweep experiment, we perform PCA on the cross-species integrated matrix (Fig. S1, step 6) to create a 919 cell 919 PC matrix (Fig. S1 step 7). We then subsetted it from 3 to 100 PCs, producing 98 matrices which we converted into `contml` infiles for phylogenetic inference. 
+
+# Preliminaries
+
+```{r}
+#set working directory
+setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
+
+```
+
+# Make PC sweep infiles
+Subset the 919 cell 919 PC matrix to 3-100 PCs and print out the matrices as `contml` infiles.
+
+```{r}
+
+make_pc_sweep_infiles(matrix_path="matrix/PCA/contml_919cell_subset_919PC_mtx/", run_PCA=FALSE, PC_range=c(3:10))
+
+#or perform PCA on the cross-species integrated matrix.
+#make_pc_sweep_infiles(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated/", run_PCA=TRUE, PC_range=c(3:10))
+
+```
+The infiles are deposited in `PC_sweep/infiles/`.
+
+# Infer a cell phylogeny from each infile with `contml`
+
+
+
+

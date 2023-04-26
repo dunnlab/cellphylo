@@ -194,9 +194,9 @@ From these plots we can identify an elbow at PC20.
 
 ## Use PCA to rotate and rank reduce the matrix
 
-Perform PCA on the matrix and reduce the rank to 20 PCs.
+Perform PCA on the matrix. Mean-centre before PCA and normalize variance by standard deviation. 
 ```{r}
-pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs=20, print=TRUE)
+pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs=919, print=TRUE)
 ```
 
 

@@ -7,14 +7,14 @@
 make_infile(matrix, matrix_path, print)
 }
 \arguments{
-\item{matrix}{Matrix to create contml infile from}
+\item{matrix}{Matrix to create contml infile from. Use this if you have the matrix as an R object.}
 
-\item{matrix_path}{Path to matrix to create contml infile from}
+\item{matrix_path}{Path to matrix to create contml infile from. Use this if you have a printed matrix in 10x feature-barcode format.}
 
 \item{print}{Print the infile}
 }
 \value{
-An object representing a matrix formatted in contml infile format.
+An object representing a matrix formatted in contml infile format. Contml requires a printed infile so print=TRUE is recommended.
 }
 \description{
 Converts a matrix to contml (PHYLIP) infile format.

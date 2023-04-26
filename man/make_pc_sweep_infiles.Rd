@@ -4,11 +4,20 @@
 \alias{make_pc_sweep_infiles}
 \title{make_pc_sweep_infiles}
 \usage{
-make_pc_sweep_infiles(matrix_path)
+make_pc_sweep_infiles(matrix_path, calculate_PCA = FALSE, PC_range = c(3:100))
 }
 \arguments{
-\item{matrix_path}{Path to matrix. For Mah and Dunn (2023) use \code{aqhumor_cross_species_integrated_mtx}}
+\item{matrix_path}{Path to a matrix that has had PCA performed on it.}
+
+\item{calculate_PCA}{Boolean. If TRUE, calculate PCA on the input matrix before subsetting and producing infiles (i.e. the input matrix has not had PCA performed on it yet)}
+
+\item{PC_range}{A range indicating the number of PCs to subset from the input matrix.}
+}
+\value{
+This function prints out the \code{contml} infiles for the PC sweep experiment
 }
 \description{
-make_pc_sweep_infiles
+This function produces the input files for the PC sweep experiment in Mah & Dunn (2023) (Fig.2).
+It takes in the 919 cell 919 PC matrix (Fig. S1, step 7) and subsets the matrix to an increasing number of PCs. These matrix subsets are printed out as \code{contml} infiles.
+If \code{calculate_PCA = TRUE} the function will first perform PCA on the matrix before subsetting and creating the infiles.
 }

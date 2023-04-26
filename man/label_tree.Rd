@@ -11,12 +11,12 @@ label_tree(matrix_path, tree_path, file_name, print)
 
 \item{tree_path}{Path to the raw phylogeny produced by contml ("outtree" file)}
 
-\item{file_name}{Name of tree file of labelled tree}
+\item{file_name}{File name for the labelled tree this function produces.}
 
-\item{print}{Print out the tree file of the labelled tree}
+\item{print}{Print out the tree file of the labelled tree. Tree is given in newick format.}
 }
 \value{
-A phylo object of the labelled tree
+A phylo object of the labelled tree.
 }
 \description{
 Replace the taxon number labels in the contml outtree with the cell ids in the input matrix used to make the contml infile.

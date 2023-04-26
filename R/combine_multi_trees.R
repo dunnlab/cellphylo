@@ -2,7 +2,7 @@
 #'
 #' @importFrom TreeTools as.multiPhylo
 #' @importFrom ape read.tree
-#' @param tree_dir_path Path to directory containing multiple trees to combine
+#' @param tree_dir_path Path to directory containing the trees to combine into a multiphylo object. These tree files should be in newick format.
 #'
 #' @return multi_tree A multiphylo object of all trees in the tree_dir_path directory
 #' @export

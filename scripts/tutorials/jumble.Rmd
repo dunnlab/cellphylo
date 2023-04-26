@@ -3,10 +3,12 @@ title: "Jumble trees"
 output: html_notebook
 ---
 
-The following scripts were used to estimate 'jumble trees' - replicate trees inferred from a single data set by jumbling the order of input taxa to contml.
+The following scripts were used to estimate 'jumble trees' - replicate trees inferred from a single data set by jumbling the order of input taxa to contml. The clade frequency across these jumble trees were used as "jumble scores", a measure of technical repeatability. 
 
-...
+
 ### Jumble Run
+
+
 54 cell
 input: (same code as 92/57 jumble search with folder names changed)
 MD5 (infile_54_20PC) = e98191bda1e3f82b7f45e8e8334f7768

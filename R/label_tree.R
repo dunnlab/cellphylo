@@ -8,10 +8,10 @@
 #'
 #' @param matrix_path Path to matrix from which the contml infile was created. The taxon numbers of the infile correspond to the matrix cell ids in sequence.
 #' @param tree_path Path to the raw phylogeny produced by contml ("outtree" file)
-#' @param file_name Name of tree file of labelled tree
-#' @param print Print out the tree file of the labelled tree
+#' @param file_name File name for the labelled tree this function produces.
+#' @param print Print out the tree file of the labelled tree. Tree is given in newick format.
 #'
-#' @return A phylo object of the labelled tree
+#' @return A phylo object of the labelled tree.
 #' @export
 #'
 #' @examples
