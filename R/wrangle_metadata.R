@@ -4,7 +4,6 @@
 #'
 #' @importFrom dplyr mutate select
 #' @importFrom utils read.csv
-
 #' @param path_to_meta_file A path to the metadata file provided by van Zyl et al. (2020).
 #'
 #' @return meta_data A data frame with columns for cell identifier, cluster id, sample id and cell barcode parsed from the meta data file.

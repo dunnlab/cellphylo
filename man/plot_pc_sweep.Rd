@@ -4,10 +4,10 @@
 \alias{plot_pc_sweep}
 \title{plot_pc_sweep}
 \usage{
-plot_pc_sweep(rank = c(1:98), var_df, print = TRUE)
+plot_pc_sweep(rank = c(3:100), var_df, print = TRUE)
 }
 \arguments{
-\item{rank}{The range of the ranks you want to plot. This corresponds to row number in var.df calcualted by calc_pc_sweep_var.}
+\item{rank}{The range of the ranks you want to plot. This sets the x-axis for hte plots.The range must match the number of rows in the data frame of variables calculted by \code{calc_pc_sweep_var}.}
 
 \item{var_df}{The dataframe of variable produced by cellphylo::calc_pc_sweep_var}
 }
@@ -15,5 +15,5 @@ plot_pc_sweep(rank = c(1:98), var_df, print = TRUE)
 List containing plots for tree length, average edge length and star-ness score
 }
 \description{
-Plots the variables calculated by calc_pc_sweep_var. Produces Figs 2A, 2B, 2C.
+Plots the variables calculated by calc_pc_sweep_var. Produces Figs 2A, 2B, 2C. Default values are what were used in Mah & Dunn (2023).
 }

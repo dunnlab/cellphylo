@@ -1,27 +1,27 @@
 #!/bin/bash
 
 #pc sweep
-#create a directory called `contml` and deposit a directory containing the PC sweep infiles into /contml/
+#create a directory called `contml` and deposit a directory `infiles/` containing the PC sweep infiles into /contml/
 
 cd /contml
 
-mkdir outtrees_PC_sweep_919_final
-mkdir outfiles_PC_sweep_919_final
+mkdir pc_sweep_outtrees
+mkdir pc_sweep_outfiles
 
 for n in {3..100}
 do
 
-cd pc_sweep_infiles_final
-cp infile_pca_var_norm_pc_sweep_${n} ../
+cd infiles
+cp infile_pc_sweep_${n} ../
 
 cd ../
-mv infile_pca_var_norm_pc_sweep_${n}  infile
+mv infile_pc_sweep_${n}  infile
 
 #use species 1 as outgroup (default)
 printf "C\nY\n"| ./phylip/phylip-3.697/exe/contml
 
-mv outtree outtrees_PC_sweep_919_final/outtree_${n}_PC_sweep_919_final.tre
-mv outfile outfiles_PC_sweep_919_final/outfile_${n}_PC_sweep_919_final.txt
+mv outtree c_sweep_outtrees/outtree_pc_sweep_${n}tre
+mv outfile pc_sweep_outfiles/outfile_pc_sweep_${n}.txt
 
 echo "Run ${n}"
 
