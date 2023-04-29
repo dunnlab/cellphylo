@@ -4,10 +4,10 @@
 \alias{plot_pc_sweep}
 \title{plot_pc_sweep}
 \usage{
-plot_pc_sweep(rank, var_df)
+plot_pc_sweep(rank = c(1:98), var_df, print = TRUE)
 }
 \arguments{
-\item{rank}{The rank index of the trees to plot. This must match the trees submitted as input to calc_pc_sweep_var. Eg. If you want to plot trees inferred from PC sweep matrices 3-100, rank is c(3:100).}
+\item{rank}{The range of the ranks you want to plot. This corresponds to row number in var.df calcualted by calc_pc_sweep_var.}
 
 \item{var_df}{The dataframe of variable produced by cellphylo::calc_pc_sweep_var}
 }
@@ -15,5 +15,5 @@ plot_pc_sweep(rank, var_df)
 List containing plots for tree length, average edge length and star-ness score
 }
 \description{
-plot_pc_sweep
+Plots the variables calculated by calc_pc_sweep_var. Produces Figs 2A, 2B, 2C.
 }

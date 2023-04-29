@@ -4,12 +4,12 @@
 \alias{make_pc_sweep_infiles}
 \title{make_pc_sweep_infiles}
 \usage{
-make_pc_sweep_infiles(matrix_path, calculate_PCA = FALSE, PC_range = c(3:100))
+make_pc_sweep_infiles(matrix_path, run_PCA = FALSE, PC_range = c(3:100))
 }
 \arguments{
 \item{matrix_path}{Path to a matrix that has had PCA performed on it.}
 
-\item{calculate_PCA}{Boolean. If TRUE, calculate PCA on the input matrix before subsetting and producing infiles (i.e. the input matrix has not had PCA performed on it yet)}
+\item{run_PCA}{Boolean. If TRUE, calculate PCA on the input matrix before subsetting and producing infiles (i.e. the input matrix has not had PCA performed on it yet)}
 
 \item{PC_range}{A range indicating the number of PCs to subset from the input matrix.}
 }

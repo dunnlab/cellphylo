@@ -42,7 +42,7 @@ All other species' data sets required 50 Gib ram per CPU.
 
 Parameter values used by Mah & Dunn (2023) for `within_species_integration` are set as default.  
 
-```{r}
+```{r within-species-integration}
 
 #human
 human_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_humanF", n_features=3000, k_weight = 100, print=TRUE)
@@ -69,7 +69,7 @@ Fig. S1 step 4
 ### Identify the cell type with the fewest replicates
 To make later analyses computationally feasible, we randomly subset each species' matrix so that all cell type groups across all five species have the same number of replicates. This means subsetting to the smallest number of replicates displayed by any one cell type group.  
 
-```{r}
+```{r count-replicates}
 
 count_replicates("matrix/within-species")
 
@@ -80,7 +80,7 @@ We determine that the cell type group with the smallest number of replicates are
 ### Subset the matrices 
 
 For each species, randomly subset the full matrix to 10 cells per cell type group.  
-```{r}
+```{r subset-cells} 
 #human
 subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_human", n_reps = 10, print=TRUE)
 #macF
@@ -109,7 +109,7 @@ Gene symbols vary between species. We need to create a mapping between gene symb
 The below code is designed to data wrangle the Ensembl ortholog file downloaded for Mah and Dunn (2023). This wrangling facilitates downstream analysis. I have provided this orthology table: `Aqhumor_ensembl_orthologs.txt`. Put this orthology table in the `ann` folder. 
 
 
-```{r}
+```{r wrangle-ortholog-map}
 #library(tidyverse)
 
 # read in ensembl ontology file
@@ -137,7 +137,7 @@ This produces `AqHumor_ensembl_orthologs_wrangled.tsv` and TSV table mapping gen
 
 Combine the subsetted matrices by shared orthlogs.  
 
-```{r}
+```{r combine-matrices}
 
 matrix_dir_path <- "matrix/subset/"
 
@@ -158,7 +158,7 @@ Fig. S1 step 6
 
 Use the Seurat workflow to integrate counts across species. Default values for cellphylo::cross_species_integration are what was used for Mah & Dunn (2023).
 
-```{r}
+```{r cross-species-integration}
 
 cross_species_int <- cross_species_integration(matrix_path = "matrix/combined_by_orthology/matrix_combined")
 
@@ -179,7 +179,7 @@ This produces the matrix `mtrix/cross-species_integration/matrix_cross-species_i
 Fig. S1 step 7
 
 ## Inspect the distribution of variance across principal components
-```{r}
+```{r plot-eigenvalues}
 eig_plots <- plot_eigs(matrix_path = "matrix/cross-species_integration/matrix_cross-species_integrated/", highlight=20, print=TRUE)
 
 ```
@@ -195,7 +195,7 @@ From these plots we can identify an elbow at PC20.
 ## Use PCA to rotate and rank reduce the matrix
 
 Perform PCA on the matrix. Mean-centre before PCA and normalize variance by standard deviation. 
-```{r}
+```{r run-pca}
 pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs=919, print=TRUE)
 ```
 

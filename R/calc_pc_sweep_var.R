@@ -1,11 +1,11 @@
 #' calc_pc_sweep_var
 #'
-#' Calculates tree length, average tip and interior edge lengths, and the star-ness score ("star measure)
+#' Calculates tree length (Fig. 2A), average tip and interior edge lengths (Fig. 2B), and the star-ness score (ratio of sum of tip:interior edge lengths, Fig. 2C)
 #'
 #' @importFrom gtools mixedsort
 #' @importFrom ape read.tree
 #'
-#' @param tree_dir_path Path to directory containing trees to calculate stats on
+#' @param tree_dir_path Path to directory containing the trees (ie. `contml outtrees`) to calculate the PC sweep variables from.
 #'
 #' @return var.df A data frame containing the variables in a format suitable for plotting with cellphylo::plot_pc_sweep.
 #' @export

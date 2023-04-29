@@ -1,3 +1,3 @@
 # cellphylo
 
-An R package to facilitate running the code for the analyses produced in Mah & Dunn (2023).
+An R package to facilitate reproducing the analysis provided in Mah & Dunn (2023).

@@ -12,11 +12,6 @@ The end product of this notebook - UMI matrices in `cellphylo` format - are prov
 #set working directory
 setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 
-```
-
-Create some directories  
-```{r}
-
 # for meta data annotation files
 dir.create("./ann")
 # for the  matrices created during cellphylo analysis
@@ -25,6 +20,7 @@ dir.create("./matrix")
 dir.create("./matrix/raw_csv")
 
 ```
+
 
 # Wrangle data  
 We use the single cell atlas from [van Zyl et al.   (2020)](https://doi.org/10.1073/pnas.2001250117) as our pilot data.  

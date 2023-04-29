@@ -18,7 +18,7 @@ setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 # Make PC sweep infiles
 Subset the 919 cell 919 PC matrix to 3-100 PCs and print out the matrices as `contml` infiles.
 
-```{r}
+```{r make-pc-sweep-infiles}
 
 make_pc_sweep_infiles(matrix_path="matrix/PCA/contml_919cell_subset_919PC_mtx/", run_PCA=FALSE, PC_range=c(3:10))
 
@@ -28,8 +28,27 @@ make_pc_sweep_infiles(matrix_path="matrix/PCA/contml_919cell_subset_919PC_mtx/",
 ```
 The infiles are deposited in `PC_sweep/infiles/`.
 
-# Infer a cell phylogeny from each infile with `contml`
+# Infer a cell phylogeny from each infile with `contml`  
 
+`contml` is part of PHYLIP. Install [`PHYLIP v. 3.697`](https://github.com/dunnlab/phylip). We ran PHYLIP in an [Ubuntu docker container](https://github.com/dunnlab/ubuntu-dev).
+
+We recommend running this on a cluster using multiple CPUs.
+
+`contml` was run using the 'C' (continuous) option, and all other options left at default.
+
+# Calculate and plot the PC sweep variables
+We will calculate total tree length (sum of all branch lengths), the sum of interior edge lengths, sum of tip edge lengths, and star-ness score (ratio of tip to interior edge lengts).
+
+```{r calculate-plot-PC-sweep}
+
+#calculate the PC sweep variables. 
+variables.df <- calc_pc_sweep_var("PC_sweep/output/pc_sweep_outtrees")
+
+#plot the variables to create the graphs in Fig. 2
+plots <- plot_pc_sweep(rank=c(3:100), variables.df, print=TRUE)
+
+
+```
 
 
 

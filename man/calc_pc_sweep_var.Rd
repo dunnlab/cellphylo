@@ -7,11 +7,11 @@
 calc_pc_sweep_var(tree_dir_path)
 }
 \arguments{
-\item{tree_dir_path}{Path to directory containing trees to calculate stats on}
+\item{tree_dir_path}{Path to directory containing the trees (ie. \verb{contml outtrees}) to calculate the PC sweep variables from.}
 }
 \value{
 var.df A data frame containing the variables in a format suitable for plotting with cellphylo::plot_pc_sweep.
 }
 \description{
-Calculates tree length, average tip and interior edge lengths, and the star-ness score ("star measure)
+Calculates tree length (Fig. 2A), average tip and interior edge lengths (Fig. 2B), and the star-ness score (ratio of sum of tip:interior edge lengths, Fig. 2C)
 }
