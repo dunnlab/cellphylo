@@ -1,10 +1,12 @@
 #' subsample_combined_matrix
 #'
+#' Randomly subsample a combined matrix containing cells from multiple species. Cell ids must be in cellphylo format.
+#'
 #' @importFrom Seurat Read10X as.sparse
 #' @importFrom dplyr filter
 #' @importFrom DropletUtils write10xCounts
 #'
-#' @param matrix_path Path to a combined matrix of cells from multiple species. Cell ids must be in cellphylo format.
+#' @param matrix_path Path to a combined matrix of cells from multiple species.
 #' @param sample_size The number of replicates per cell type group to be sampled
 #' @param print Print out a file listing the cell ids of selected cells and the subsampled matrix in 10x format.
 #'
@@ -12,6 +14,7 @@
 #' @export
 #'
 #' @examples
+#'
 subset_combined_matrix <- function(matrix_path, sample_size, print){
 
   #load matrix
@@ -44,15 +47,18 @@ subset_combined_matrix <- function(matrix_path, sample_size, print){
   selected <- combined_subset_dfs$random_subset
   indices <- which(colnames(mat) %in% selected)
 
-  if (print==TRUE){
-    write.table(selected, paste0("aqhumor_cross_species_",n_subset, "_subset.txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)}
-
-  #subset and write out matrix
+  #subset matrix
   mat.sub <-mat[,indices]
   mat.sparse <- as.sparse(mat.sub)
 
   if (print==TRUE){
-    write10xCounts(paste0("aqhumor_cross_species_",n_subset, "_subset_mtx"), mat.sparse, version="3")
+
+    #write list of subsampled cells
+    write.table(selected, paste0("matrix_combined_",n_subset, "cell_subset.txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)
+
+    #write subsampled matrix
+    write10xCounts(paste0("matrix_combined_",n_subset, "cell_subset_mtx"), mat.sparse, version="3")
+
   }
 
   return(mat.sparse)

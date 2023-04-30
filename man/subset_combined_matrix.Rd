@@ -7,7 +7,7 @@
 subset_combined_matrix(matrix_path, sample_size, print)
 }
 \arguments{
-\item{matrix_path}{Path to a combined matrix of cells from multiple species. Cell ids must be in cellphylo format.}
+\item{matrix_path}{Path to a combined matrix of cells from multiple species.}
 
 \item{sample_size}{The number of replicates per cell type group to be sampled}
 
@@ -17,5 +17,5 @@ subset_combined_matrix(matrix_path, sample_size, print)
 mat.sparse The subsampled matrix in sparse matrix format.
 }
 \description{
-subsample_combined_matrix
+Randomly subsample a combined matrix containing cells from multiple species. Cell ids must be in cellphylo format.
 }

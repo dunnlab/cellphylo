@@ -17,9 +17,21 @@ setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 
 ```
 
+
 # Jumble analysis
 
 This workflow calculates jumble trees, removes errored files, and then calculates jumble scores.
+
+## Create infile for jumble tree
+
+The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C3). See `2_Create_Matrices.Rmd`.  
+
+```{r}
+
+make_infile(matrix_path = "figure_4/matrix/contml_54cell_subset_20PC_mtx/", print=TRUE)
+
+```
+
 
 ## Infer jumble trees from contml runs
 
@@ -32,7 +44,7 @@ The `contml` settings:
     Number of times to jumble: 100
   G: Global rearrangements
   
-The input `infile` must be named `infile` and be present in the working directory.
+Infile has been provided: infile_54_20PC
   
 ```
 #!/bin/bash
