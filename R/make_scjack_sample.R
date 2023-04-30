@@ -18,6 +18,27 @@ make_scjack_sample <- function(n_samples, subsample_matrix_path, full_matrix_pat
    #load the full 919 cell 20 PC matrix for subsetting down below
    full_pca_mat <- Read10X(full_matrix_path)
 
+   #make directories to organize
+   if(!dir.exists("figure_4")){
+     dir.create("figure_4")
+   }
+
+   if(!dir.exists("figure_4/scjack_analysis/")){
+     dir.create("figure_4/scjack_analysis/")
+   }
+
+   if(!dir.exists("figure_4/scjack_analysis/scjack_selected_cells")){
+     dir.create("figure_4/scjack_analysis/scjack_selected_cells")
+   }
+
+   if(!dir.exists("figure_4/scjack_analysis/scjack_matrices")){
+     dir.create("figure_4/scjack_analysis/scjack_matrices")
+   }
+
+   if(!dir.exists("figure_4/scjack_analysis/scjack_infiles")){
+     dir.create("figure_4/scjack_analysis/scjack_infiles")
+   }
+
   sapply(n_samples, function(n_samples){
 
     #draw random subset of cells. 1 cell per cell type cluster per speciesu
@@ -31,27 +52,6 @@ make_scjack_sample <- function(n_samples, subsample_matrix_path, full_matrix_pat
 
     #make infile
     phylip <- make_infile(matrix = pca_matrix, print = FALSE)
-
-    #make directories to organize
-    if(!dir.exists("figure_4")){
-      dir.create("figure_4")
-    }
-
-    if(!dir.exists("figure_4/scjack_analysis/")){
-      dir.create("figure_4/scjack_analysis/")
-    }
-
-    if(!dir.exists("figure_4/scjack_analysis/scjack_selected_cells")){
-      dir.create("figure_4/scjack_analysis/scjack_selected_cells")
-    }
-
-    if(!dir.exists("figure_4/scjack_analysis/scjack_matrices")){
-      dir.create("figure_4/scjack_analysis/scjack_matrices")
-    }
-
-    if(!dir.exists("figure_4/scjack_analysis/scjack_infiles")){
-      dir.create("figure_4/scjack_analysis/scjack_infiles")
-    }
 
     ## print out scjackknife input files
     ## print outside of the two above functions so can have sequential file names

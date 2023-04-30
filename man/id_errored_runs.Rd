@@ -4,16 +4,18 @@
 \alias{id_errored_runs}
 \title{id_errored_runs}
 \usage{
-id_errored_runs(outtrees_dir)
+id_errored_runs(outtrees_dir, matrix_name_pattern)
 }
 \arguments{
-\item{outtrees_dir}{Path to directly with contml outtrees.}
+\item{outtrees_dir}{Path to directory with contml \code{outtrees}. This directory contains all \code{outtree} files created by contml, including for runs that errored.}
+
+\item{matrix_name_pattern}{Prefix for matrix name. This function assumes that your matrix names end in \code{index_num_mtx} eg. for \code{scjackknife_540_TBE_1_mtx}, the matrix_name_pattern is \code{scjackknife_540_TBE}}
 }
 \value{
-NULL prints out a list of scjackknife matrix names that produced empty tree files when run through contml.
+prints out a list of scjackknife matrix names that produced empty tree files when run through contml.
 }
 \description{
-Create a list of matrices produced by contml runs that errored out.
-Errored contml runs lead to empty outtree files, which must be removed for downstream analyses. However, the corresponding scjackknife matrices must also be removed to preserve index number in downstream analyses.
+When \code{contml} runs error, it produces an empty \code{outtree} and \code{outfile}. We remove these, but now the index between the \code{contml} output files and scjack matrices do not match, leading to downstream analysis issues.
+This function makes a list of matrices that produced an error when \code{contml} was run. We will then use this list to remove these matrices and proceed with downstream analyses.
 This function is part of the workflow of the scjackknife analysis.
 }

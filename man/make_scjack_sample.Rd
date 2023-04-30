@@ -4,12 +4,19 @@
 \alias{make_scjack_sample}
 \title{make_scjack_sample}
 \usage{
-make_scjack_sample(n_samples, matrix_path, file_name)
+make_scjack_sample(
+  n_samples,
+  subsample_matrix_path,
+  full_matrix_path,
+  file_name
+)
 }
 \arguments{
 \item{n_samples}{Number of scjackknife samples to create.}
 
-\item{matrix_path}{Path to the matrix to sample from.}
+\item{subsample_matrix_path}{Path to the matrix to sample from.}
+
+\item{full_matrix_path}{Path to full unsubsetted matrix. PCA should already have been performed and PCs subsetted.}
 }
 \value{
 pca_matrix List of resampled single jackknife matrices.

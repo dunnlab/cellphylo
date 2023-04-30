@@ -16,14 +16,7 @@ We subsample 1 cell per cell type group from the 540 cell 2000 gene matrix (see 
 500 samples
 ```{r}
 
-# The matrix to subsample cells from. This is the 540 cell matrix (Fig. )
-subsample_matrix_path = "figure_4/matrix/matrix_540cell_cross_species_integrated_mtx/"
-#919 cell normalized, within + cross-species integrated matrix, not subsetted with black-listed cell types removed
-full_matrix_path = "matrix/PCA/contml_919cell_subset_20PC_mtx/"
-n_samples = c(1:3)
 
-#function calls: subset_combined_matrix(), run_pca(), and make_infile()
-scjack_sample <- make_scjack_sample(n_samples = n_samples, subsample_matrix_path = subsample_matrix_path, full_matrix_path = full_matrix_path, file_name="540_TBE")
 
 ```
 
