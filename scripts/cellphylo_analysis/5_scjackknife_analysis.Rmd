@@ -11,33 +11,65 @@ setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
 ```
 
 # Create scjackknife files
-We subsample 1 cell per cell type group from the 540 cell 2000 gene matrix (see `2_Create_Matrices.Rmd`). Create 500 samples.
+# Make scjack samples
+To create each replicate 54 cell scjack matrix, we will repeatably sample 1 cell per cell type group per species, for the 54 cell type groups we used to create the phylogeny in Figure 4. We will use a 540 cell matrix (10 cells per cell type group, 54 cell type groups) to draw cell labels from. Because PCA must be performed on the full 919 cell matrix, we will create a 919 cell 20 PC matrix (Fig. S1, step C1) and pull out the cell labels we obtained from subsampling the cell labels of the 450 cell matrix. 
 
-500 samples
-```{r}
+We do this 500 times to create 500 resampled 54 cell matrices. Each matrix is transformed into a `contml infile` and contml is used to infer  tree from it using the same options as that used for the jumble trees.
 
-
-
+#Create the 919 cell 20 PC matrix
+Fig. S1, C1
+```{r run-pca-20pc}
+pca_matrix <- run_pca(matrix_path="~/repo/aqhumor/AqHum_5Species/aqhumor_final/matrix_final/integrated/cross_species/cross_species_integrated/aqhumor_cross_species_integrated_mtx/", n_PCs=20, print=TRUE)
 ```
 
+input:
+MD5 (aqhumor_cross_species_integrated_mtx/matrix.mtx.gz) = daa2aef295e2b7f07f80de669b8a3c1c
+output:
+MD5 (contml_919cell_subset_20PC_mtx/matrix.mtx.gz) = 4869abf3f078f17655e1bfe4697f8b98
 
-# Infer a tree from each scjackknife matrix
+#Make scjack samples
 
-The `contml` settings:
-  C: continuous characters
-  J:   Randomize input order of species (jumble)
-    Random number to seed (see bash script)
-    Number of times to jumble: 100
-  G: Global rearrangements
+This function will create 500 resampled 54 cell matrices and print them out as 10x feature-barcode matrices, infiles, and the list of cell ids present in each matrix.
 
-#
+Use cellphylo
+```{r create-scjack-sample}
 
-### Create scjack parallel scripts
-Iteratively make 1-50 and 51-100 scjack scripts from a template input script.
+# The matrix to subsample cells from. This is the 540 cell matrix (Fig. S1, step C4)
+subsample_matrix_path = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/matrix_final/integrated/cross_species/cross_species_integrated/540_aqhumor_cross_species_integrated_mtx/"
+#919 cell normalized, within + cross-species integrated matrix, not subsetted with black-listed cell types removed
+# The matrix to draw values from. This should be the 919 cell 20 PC matrix (Fig. S1, step C1)
+full_matrix_path = "~/repo/aqhuedmor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_analysis/contml_919cell_subset_20PC_mtx/"
+#number of scjack samples to make
+n_samples = c(1:500)
 
-Template input script: in_script_scjack_parallel_540.sh
+#function calls: subset_combined_matrix(), run_pca(), and make_infile()
+scjack_sample <- make_scjack_sample(n_samples = n_samples, subsample_matrix_path = subsample_matrix_path, full_matrix_path = full_matrix_path, file_name="540_TBE")
+
+```
+input:
+MD5 (540_aqhumor_cross_species_integrated_mtx/matrix.mtx.gz) = d616301cc9fdda896ed4eac52268f64f
+MD5 (contml_919cell_subset_20PC_mtx/matrix.mtx.gz) = 4869abf3f078f17655e1bfe4697f8b98
+
+output:
+MD5 (input_scjack_540_TBE.tar.gz) = a6f526a2163cdaec150e6fbec5e251f4
+
+# Run contml on the scjack infiles
+
+`contml` was run using the same options as for the jumble trees:
+  C: continuous data
+  J: jumble, 100x with random seed
+  G: global search
+
+We ran this on a hpc cluster using 64 vCPUs and running 50 `contml` commands in parallel at a time. This run takes several hours.  
+
+The bash scripts used to perform the contml runs are available in xxx.
+
+Template script: in_script_scjack_parallel_540_TBE.sh
+
 ```
 #!/bin/bash
+
+#in_script_scjack_parallel_540_TBE.sh
 
 #run contml on infile_n
 #must not have an 'infile' indirectory - will replace with infile_n
@@ -54,8 +86,10 @@ RAND_NUM=$(shuf -i 1-2000000000 -n 1)
 random_seed=$(($RAND_NUM * 2 + 1))
 echo "seed: ${random_seed}"
 
-outfile_new="outfile_scjack_jumble_search_540_${n}_${random_seed}"
-outtree_new="outtree_scjack_jumble_search_540_${n}_${random_seed}"
+outfile_new="outfile_scjack_540_TBE_${n}_${random_seed}"
+outtree_new="outtree_scjack_540_TBE_${n}_${random_seed}"
+
+##CHANGE HERE
 infile="./scjack_540_infiles/infile_scjackknife_540_final_${n}"
 
 echo "outfile: ${outfile_new}"
@@ -66,16 +100,19 @@ printf "${infile}\nF\n${outfile_new}\nC\nJ\n${random_seed}\n100\nG\nY\nF\n${outt
 #test
 #printf "${infile}\nF\n${outfile_new}\nC\nJ\n${random_seed}\n2\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
 
-mv ${outtree_new} ./outtrees_scjack_jumble_search_540/${outtree_new}.tre
-mv ${outfile_new} ./outfiles_scjack_jumble_search_540/${outfile_new}.txt
+mv ${outtree_new} ./outtrees_scjack_540_TBE/${outtree_new}.tre
+mv ${outfile_new} ./outfiles_scjack_540_TBE/${outfile_new}.txt
 
 
 echo "Run ${n} complete"
 ```
+output: MD5 (in_script_scjack_parallel_540_TBE.sh) = 94e8392ca2fe400db843398258075705
 
-Script to iteratively make repicate scripts from template: make_reps_scjack_parallel_540.sh
+Make copies of template script: make_reps_scjack_540_TBE.sh
 ```
 #!/bin/bash
+
+#make_reps_scjack_540_TBE
 
 ### Modified from script produced by ChatGPT Dec 9 2022.
 ### Prompt: "Write a bash script that iteratively reads in a text file, copies and renames it a new iterative file name, and replaces a string in the file with the iteration index. Make it do it 100 times."
@@ -84,13 +121,13 @@ Script to iteratively make repicate scripts from template: make_reps_scjack_para
 index=1
 
 # Set the filename of the original file
-filename="in_script_scjack_parallel_540.sh"
+filename="in_script_scjack_parallel_540_TBE.sh"
 
 # Set the string to be replaced in the file
 replace="ITERATION_INDEX"
 
 # Set the prefix for the new iterative filenames
-new_filename_prefix="script_scjack_jumble_search_540_"
+new_filename_prefix="script_scjack_540_TBE_"
 
 # Set the suffix for the new iterative filenames
 new_filename_suffix=".sh"
@@ -118,19 +155,20 @@ do
   index=$((index+1))
   
 done
-
 ```
 input:
-MD5 (in_script_scjack_parallel_540.sh) = 17a61e4a29de1f26383609f67caef08a
-MD5 (make_reps_scjack_parallel_540.sh) = febefdffb7aafb13ffb94466eca502c6
+MD5 (in_script_scjack_parallel_540_TBE.sh) = 94e8392ca2fe400db843398258075705
+MD5 (make_reps_scjack_540_TBE.sh) = 09d45b0e2d4c1280dea6a9eec29333dd
 
 output:
-MD5 (scjack_540_parallel_scripts.tar.gz) = 5499ba69fd577a6806a329cd7c0ebcc0
+MD5 (scjack_scripts.tar.gz) = dca27db26274f013d2e17773bef800ec
 
-Script for running scjack parallel: do preliminaries (making dirs etc) and run all scjack scripts in parallel: run_scjack_parallel_540.sh
+Script to run the scjackknife analysis on cluster: run_scjack_parallel_540_TBE.sh
 
 ```
 #!/bin/bash
+
+#run_scjack_parallel_540_TBE.sh
 
 #run Jumble in parallel
 #only want to set up directories once
@@ -138,8 +176,8 @@ Script for running scjack parallel: do preliminaries (making dirs etc) and run a
 
 cd /contml
 
-mkdir outtrees_scjack_jumble_search_540
-mkdir outfiles_scjack_jumble_search_540
+mkdir outtrees_scjack_540_TBE
+mkdir outfiles_scjack_540_TBE/
 
 #make an empty outfile and outtree so contml prompts for custom file names
 touch outfile
@@ -152,160 +190,138 @@ echo "scjack jumble search preliminaries complete"
 
 #send in the command. Remove last `&`. #chatgpt
 
-#for i in {1..50}; do printf "./script_scjack_jumble_search_540_$i.sh & %.0s"; done
+#for i in {1..50}; do printf "script_scjack_540_TBE_$i.sh & %.0s"; done
 
 #run the script 50 times in parallel
-./script_scjack_jumble_search_540_1.sh & ./script_scjack_jumble_search_540_2.sh & ./script_scjack_jumble_search_540_3.sh & ./script_scjack_jumble_search_540_4.sh & ./script_scjack_jumble_search_540_5.sh & ./script_scjack_jumble_search_540_6.sh & ./script_scjack_jumble_search_540_7.sh & ./script_scjack_jumble_search_540_8.sh & ./script_scjack_jumble_search_540_9.sh & ./script_scjack_jumble_search_540_10.sh & ./script_scjack_jumble_search_540_11.sh & ./script_scjack_jumble_search_540_12.sh & ./script_scjack_jumble_search_540_13.sh & ./script_scjack_jumble_search_540_14.sh & ./script_scjack_jumble_search_540_15.sh & ./script_scjack_jumble_search_540_16.sh & ./script_scjack_jumble_search_540_17.sh & ./script_scjack_jumble_search_540_18.sh & ./script_scjack_jumble_search_540_19.sh & ./script_scjack_jumble_search_540_20.sh & ./script_scjack_jumble_search_540_21.sh & ./script_scjack_jumble_search_540_22.sh & ./script_scjack_jumble_search_540_23.sh & ./script_scjack_jumble_search_540_24.sh & ./script_scjack_jumble_search_540_25.sh & ./script_scjack_jumble_search_540_26.sh & ./script_scjack_jumble_search_540_27.sh & ./script_scjack_jumble_search_540_28.sh & ./script_scjack_jumble_search_540_29.sh & ./script_scjack_jumble_search_540_30.sh & ./script_scjack_jumble_search_540_31.sh & ./script_scjack_jumble_search_540_32.sh & ./script_scjack_jumble_search_540_33.sh & ./script_scjack_jumble_search_540_34.sh & ./script_scjack_jumble_search_540_35.sh & ./script_scjack_jumble_search_540_36.sh & ./script_scjack_jumble_search_540_37.sh & ./script_scjack_jumble_search_540_38.sh & ./script_scjack_jumble_search_540_39.sh & ./script_scjack_jumble_search_540_40.sh & ./script_scjack_jumble_search_540_41.sh & ./script_scjack_jumble_search_540_42.sh & ./script_scjack_jumble_search_540_43.sh & ./script_scjack_jumble_search_540_44.sh & ./script_scjack_jumble_search_540_45.sh & ./script_scjack_jumble_search_540_46.sh & ./script_scjack_jumble_search_540_47.sh & ./script_scjack_jumble_search_540_48.sh & ./script_scjack_jumble_search_540_49.sh & ./script_scjack_jumble_search_540_50.sh
+#repeat 50 times 
+script_scjack_540_TBE_1.sh & script_scjack_540_TBE_2.sh 
 
 echo "Commands 1-50 complete"
 
-#etc until Commands 451-500 complete
-
-echo "ALL COMMANDS COMPLETE"
+echo "ALL COMMANDS COMPLETE!!!!!"
 
 exit
 
 ```
-MD5 (run_scjack_parallel_540.sh) = 0184bb194ed07fcd0a1a94f3e2de4165
+output: MD5 (run_scjack_parallel_540_TBE.sh) = 1022eb1cb9be46d76e5dd5996b1df20a0
 
+#Infer scjackknife trees on cluster
+EC2:
 
+Amazon Linux 2023 AMI
+Amazon Linux 2023 AMI 2023.0.20230419.0 x86_64 HVM kernel-6.1
+64-bit (x86), boot mode: uefi-preferred, AMI ID: ami-02396cdd13e9a1257
 
-### Run Scjack parallel scripts:
+Instance: c5a.16xlarge: 64 vCPU, 128 GiB mem
+
+VPC - required  Info
+
+vpc-066eb8998a0cf415c (partner_dunn-vpc)
+10.9.17.0/24
+
+Subnet Info
+
+subnet-015e679f07bca9a60
+partner_dunn-private-us-east-1a
+
+30 GiB root volume
+
+Private IP: 10.9.17.45
+
 Run:
-```
-#new tmux session
-tmux new -s scjack_jumble_search_1
 
+```
+tmux new -s scjack_540_TBE
 sudo service docker start
 sudo docker run --rm --name contml -v /home/ec2-user/contml:/contml -it dunnlab/ubuntu-dev:20.04 /bin/bash 
 
-./run_scjack_parallel_540.sh | tee -a "run_scjack_parallel_540.log"
-
-
+./run_scjack_parallel_540_TBE.sh |tee -a run_scjack_parallel_540_TBE.log
 ```
-input: 
-MD5 (scjack_540_parallel_scripts.tar.gz) = 5499ba69fd577a6806a329cd7c0ebcc0
-MD5 (run_scjack_parallel_540.sh) = 0184bb194ed07fcd0a1a94f3e2de4165
-MD5 (scjack_540_infiles.tar.gz) = d7ba89a566941ea12b868ac8e532ea28
 
+input:
+MD5 (run_scjack_parallel_540_TBE.sh) = 1022eb1cb9be46d76e5dd5996b1df20a
+MD5 (input_scjack_540_TBE.tar.gz) = fbd5ff0c082cddfec39e2b084149a589
 output:
-MD5 (output_scjack_jumble_search_540.tar.gz) = a68946b9a0a48742be977442e9145a0c
+MD5 (output_scjack_540_TBE.tar.gz) = 384d0762ca07dc73e349d65dbab72127
 
-Remove errored out files
-```
-find . -type f -print| xargs grep "Ln Likelihood"| cut -d ":" -f 1| xargs -I '{}' cp '{}' ../outfiles_scjack_jumble_search_540_processed
-```
+# Process output files
+Some `contml` runs may have errored out, producing empty `outtree` files. Remove these files
+
 Delete any empty tree files
 ```
 find ./ -size 0 -print -delete
 ```
+
+Copy `outfiles` that are not empty into a new folder
+
+```
+find . -type f -print| xargs grep "Ln Likelihood"| cut -d ":" -f 1| xargs -I '{}' cp '{}' ../outfiles_scjack_540_TBE_processed/
+```
+
+439 trees remaining
+
 input:
-MD5 (output_scjack_jumble_search_540.tar.gz) = a68946b9a0a48742be977442e9145a0c
-
+MD5 (output_scjack_540_TBE.tar.gz) = 384d0762ca07dc73e349d65dbab72127
 output:
-MD5 (output_scjack_jumble_search_540_processed.tar.gz) = a7840d3b02c1d1e8aa8174c4a14dbba6
+MD5 (outfiles_scjack_540_TBE_processed.tar.gz) = 54425c395958a7db2eb9a403a6e26c0f
+MD5 (outtrees_scjack_540_TBE_processed.tar.gz) = 45113b16c94ede167c3ea5036ad48e0b
 
 
-Because I removed files, index between output files and matrices directory do not match.
-### run:
-```{r}
-setwd("~/repo/aqhumor/AqHum_5Species")
+Removing files causes the index between the scjack matrices and `outtree` and `outfile` files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
+use cellphylo:
 
-#unrpocessed outtrees dir
-outtrees_dir <- "aqhumor_final/scjackknife/scjack_54_jumble_search/output_scjack_jumble_search_540/outtrees_scjack_jumble_search_540/"
+```{r id-errored-runs}
+outtrees_dir = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE/outtrees_scjack_540_TBE/"
+matrix_name_pattern = "scjackknife_540_TBE"
 
-id_errored_runs(outtrees_dir)
+id_errored_runs(outtrees_dir = outtrees_dir, matrix_name_pattern = matrix_name_pattern)
+
 ```
 
-Then in bash:
+input:
+MD5 (../output_scjack_540_TBE.tar.gz) = 384d0762ca07dc73e349d65dbab72127
+output:
+MD5 (errored_runs.txt) = 530e1f2e531231b1f257e20fd8e3b674
+
+Remove these matrices using bash:
 ```
-cd scjack_540_matrices
+cd scjack_matrices
 rm -r $(<errored_runs.txt)
 
 ```
-input:
-MD5 (scjack_540_matrices.tar.gz) = fec67e7d7afa0621617823635dd17eeb
-output:
-MD5 (scjack_540_matrices_processed.tar.gz) = b1280a4dfba74de7234d45f383c212db
-
-### Score scjack 54
-Label scjackknife trees
-```{r}
-setwd("~/repo/aqhumor/AqHum_5species/")
-
-#convert tree labels to common names
-n_trees = c(1:464)
-matrix_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_matrices_processed/"
-tree_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/output_scjack_jumble_search_540_processed/outtrees_scjack_jumble_search_540_processed/"
-
-labelled_trees <- label_scjack_trees_54(n_trees=n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path)
-```
-
-Identify and score best scjack tree - FBP
-```{r}
-
-setwd("~/repo/aqhumor/AqHum_5species/")
-
-tree_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label"
-
-#find best tree
-best_scjack_tree(tree_dir_path = tree_dir_path)
-list.files(tree_dir_path)
-
-#score
-scjack_multiphylo <- combine_multi_trees(tree_dir_path)
-#best mean
-focal_tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label/scjackknife_540_outtrees_common_labels_116_2192404113.tre"
-#best median
-focal_tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label/scjackknife_540_outtrees_common_labels_404_2139113093.tre"
-
-tree <- score_scjack(scjack_multiphylo = scjack_multiphylo,focal_tree_path = focal_tree_path, print=TRUE)
-```
-
-Plot scjack scores on best 54 jumble search tree
-```{r}
-#try the best jumble search tree
-#add common labels 
-n_trees = 1
-matrix_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/matrix/"
-tree_dir_path2 = "aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/tree/"
-label_scjack_trees_54(n_trees=n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path2)
-
-#manually add the best jumble tree to tree dir (did not save in dir)
-#scjackknife_540_outtrees_common_labels_search_61674183.tre to scjack_540_trees_common_label_with_best_jumble
-
-#score best jumble tree
-tree_dir_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/processed/scjack_540_trees_common_label_with_best_jumble"
-focal_tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search/best_trees/best_jumble_tree/scjackknife_540_outtrees_common_labels_search_61674183.tre"
-scjack_multiphylo <- combine_multi_trees(tree_dir_path)
-tree <- score_scjack(scjack_multiphylo = scjack_multiphylo,focal_tree_path = focal_tree_path, print=TRUE)
-
-``` 
-
-#TBP - 540 scjack
-New two newick files: ref and boot
-Boot is multi-tree file, 1 tree per line:
-```{r boot_files}
-library(ape)
-
-multi_trees <- combine_multi_trees("aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/scjack_540_trees_common_label/")
-
-
-write.tree(multi_trees, file="multi_trees_scjack_54_jumble_search_common_label.tre")
-
-#wrangle best tree for use with scjack
-
-```
-
-input:
-MD5 (scjack_540_trees_common_label.tar.gz) = 3a8ba29e2939268f9eeaf1a950cb62d2
+input: 
+MD5 (errored_runs.txt) = 530e1f2e531231b1f257e20fd8e3b674
+MD5 (input_scjack_540_TBE.tar.gz) = fbd5ff0c082cddfec39e2b084149a589
 
 output:
-MD5 (multi_trees_scjack_54_jumble_search_common_label.tre) = 7e57a6d6e15e67d781c4b001304e37d0
+MD5 (scjack_matrices_processed.tar.gz) = d6c528205438590a3e987ce0541b230d
 
+# Calculate the scjack scores
 
+# Add common labels to scjack trees
+To compare scjack trees, we must convert their tip labels to one that is common across all scjack trees. 
+
+```{r}
+#how many trees do we have in the tree directory?
+n_trees =439
+matrix_dir_path = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE_processed/scjack_matrices_processed/"
+tree_dir_path = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_processed/"
+file_name_prefix = "outtrees_scjack_540_TBE"
+
+labelled_trees <- label_scjack_trees(n_trees = n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path, print=TRUE, file_name_prefix=file_name_prefix)
+```
+input:
+MD5 (outtrees_scjack_540_TBE_processed.tar.gz) = 45113b16c94ede167c3ea5036ad48e0b
+MD5 (scjack_matrices_processed.tar.gz) = d6c528205438590a3e987ce0541b230d
+
+output
+MD5 (outtrees_scjack_540_TBE_common_label.tar.gz) = 078f68cd69e425505f2942e3f6ccfec8
+MD5 (outtrees_scjack_540_TBE_label.tar.gz) = 6951bb0225d2c74c9583271b20db3844
+
+## Add common labels to the focal tree for Fig. 4
 Wrangle best jumble tree
 ```{r boot_files2}
+
 tree <- read.tree("aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/outtree_54_jumble_search_1249177875.tre")
 
 labelled_tree <- label_tree(matrix_path = "aqhumor_final/jumble/54_jumble_search/contml_54cell_subset_pca_var_norm_20PC_mtx/", tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/outtree_54_jumble_search_1249177875.tre", file_name = "outtree_54_jumble_search_1249177875_label.tre", print=TRUE)
@@ -321,38 +337,29 @@ labelled_tree <- label_tree(matrix_path = "aqhumor_final/jumble/54_jumble_search
 
 ```
 
->>> OR <<<
-***Use label_scjack_trees_54*** function instead:
-Made directories:
-wrangle_best_tree
-  matrix_dir -> contml_54cell_subset_pca_var_norm_20PC_mtx
-  tree_dir -> outtree_54_jumble_search_1249177875.tre
-Because label_scjack_trees_54 requires the matrix or tree be in directories (since it expects more than one run)
+#Run booster
+Booster expects a newick multiphylo file
+```{r boot-files}
 
-```{r}
 library(ape)
 
-tree <- "aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/wrangle_best_tree/tree_dir/"
-#matrix must be in its own directory
-matrix_dir_path <- "aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/wrangle_best_tree/matrix_dir/"
+multi_trees <- combine_multi_trees("~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_common_label/")
 
-label_scjack_trees_54(n_trees = 1, matrix_dir_path = matrix_dir_path, tree_dir_path = tree )
 
-```
-
-Run booster
-github: https://github.com/evolbioinfo/booster (accessed Apr 10 2023)
-releases: https://github.com/evolbioinfo/booster/releases
-v0.1.2 booster_macos64
-MD5 (booster_macos64) = 1a753d2de972cf91f0f11103b6894d5e
-
-```
-./booster_macos64 -a tbe -i run/outtree_54_jumble_search_1249177875_common_label.tre -b run/multi_trees_scjack_54_jumble_search_common_label.tre > outtree_54_jumble_search_1249177875_tbe_score.tre
+write.tree(multi_trees, file="multiphylo_scjack_540_TBE_common_label.tre")
 
 ```
 input:
-MD5 (multi_trees_scjack_54_jumble_search_common_label.tre) = 7e57a6d6e15e67d781c4b001304e37d0
-MD5 (outtree_54_jumble_search_1249177875_common_label.tre) = 6c1581caf20a6e3fee821c8a09799710
+MD5 (outtrees_scjack_540_TBE_common_label.tar.gz) = 078f68cd69e425505f2942e3f6ccfec8
 
 output:
-MD5 (outtree_54_jumble_search_1249177875_tbe_score.tre) = ac72f71a46ef35cf4df8cb06183d10bc
+MD5 (multiphylo_scjack_540_TBE_common_label.tre) = fa22d9c95d122f72a7177c2ba0fbdf55
+
+
+#Calculate TBE scores for Fig. 4 focal phylogeny
+#New TBE with original fig 4 best jumble
+Try out the best jumble tree (fig. 4 tree)
+Did not include tree in multiphylo
+```
+../../booster/booster_macos64 -i outtree_54_jumble_search_1249177875_common_label.tre -b multiphylo_scjack_540_TBE_common_label.tre  > outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre
+```
