@@ -15,6 +15,9 @@
 #'
 #' @examples
 make_scjack_sample <- function(n_samples, subsample_matrix_path, full_matrix_path, file_name){
+   #load the full 919 cell 20 PC matrix for subsetting down below
+   full_pca_mat <- Read10X(full_matrix_path)
+
   sapply(n_samples, function(n_samples){
 
     #draw random subset of cells. 1 cell per cell type cluster per speciesu
@@ -24,7 +27,6 @@ make_scjack_sample <- function(n_samples, subsample_matrix_path, full_matrix_pat
 
     #rank reduce matrix
     #pca_matrix <- run_pca(matrix_path = matrix_path, n_PCs = 20, subset = subset_list, print=FALSE)
-    full_pca_mat <- Read10X(full_matrix_path)
     pca_matrix <- full_pca_mat[rownames(full_pca_mat) %in% subset_list,]
 
     #make infile

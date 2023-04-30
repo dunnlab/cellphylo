@@ -23,10 +23,21 @@ full_matrix_path = "matrix/PCA/contml_919cell_subset_20PC_mtx/"
 n_samples = c(1:3)
 
 #function calls: subset_combined_matrix(), run_pca(), and make_infile()
-scjack_sample <- make_scjack_sample(n_samples = n_samples, subsample_matrix_path = subsample_matrix_path, full_matrix_path = full_matrix_path, file_name="540_final")
+scjack_sample <- make_scjack_sample(n_samples = n_samples, subsample_matrix_path = subsample_matrix_path, full_matrix_path = full_matrix_path, file_name="540_TBE")
 
 ```
 
+
+# Infer a tree from each scjackknife matrix
+
+The `contml` settings:
+  C: continuous characters
+  J:   Randomize input order of species (jumble)
+    Random number to seed (see bash script)
+    Number of times to jumble: 100
+  G: Global rearrangements
+
+#
 
 ### Create scjack parallel scripts
 Iteratively make 1-50 and 51-100 scjack scripts from a template input script.
