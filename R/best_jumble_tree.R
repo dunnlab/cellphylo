@@ -38,17 +38,17 @@ best_jumble_tree <- function(tree_dir_path, multiphylo){
   print(paste0("max sum of scores =  index: " , index, " score: ", max(unlist(jumble_sums))))
 
   #max mean of scores
-  jumble_means <- lapply(scored_trees, function(scored_trees){
-    mean <- scored_trees$score_mean
-  })
-  index = which(jumble_means == max(unlist(jumble_means)))
-  print(paste0("max mean of scores =  index: " , index, " score: ", max(unlist(jumble_means))))
+#  jumble_means <- lapply(scored_trees, function(scored_trees){
+#    mean <- scored_trees$score_mean
+#  })
+#  index = which(jumble_means == max(unlist(jumble_means)))
+#  print(paste0("max mean of scores =  index: " , index, " score: ", max(unlist(jumble_means))))
 
   #max median of scores
-  jumble_medians <- lapply(scored_trees, function(scored_trees){
-    median <- scored_trees$score_median
-  })
-  index = which(jumble_medians == max(unlist(jumble_medians)))
-  print(paste0("max median of scores =  index: " , index, " score: ", max(unlist(jumble_medians))))
+ # jumble_medians <- lapply(scored_trees, function(scored_trees){
+#    median <- scored_trees$score_median
+#  })
+#  index = which(jumble_medians == max(unlist(jumble_medians)))
+#  print(paste0("max median of scores =  index: " , index, " score: ", max(unlist(jumble_medians))))
 
 } #close func

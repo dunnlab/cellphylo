@@ -28,14 +28,23 @@ The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C3)
 
 ```{r}
 
-make_infile(matrix_path = "figure_4/matrix/contml_54cell_subset_20PC_mtx/", print=TRUE)
+make_infile(matrix_path = "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx/", print=TRUE)
+
+if(!dir.exists("tree_inference")){
+   dir.create("tree_inference")}
+
+if(!dir.exists("tree_inference/54_cell_tree")){
+    dir.create("tree_inference/54_cell_tree")
+    }
+file.rename("infile", "tree_inference/54_cell_tree/infile")
+
 
 ```
 
 
 ## Infer jumble trees from contml runs
 
-The following bash script was used to calculate jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis.
+The bash script `scripts/script_jumble_parallel_54.sh` was used to calculate jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis.
 
 The `contml` settings:
   C: continuous characters
@@ -44,37 +53,7 @@ The `contml` settings:
     Number of times to jumble: 100
   G: Global rearrangements
   
-Infile has been provided: infile_54_20PC
-  
-```
-#!/bin/bash
-
-#Max Jumble seed is 10 digits (4294967293). Draw random number and make it odd x*2 +1. Max value of x is 2147483645.5.
-
-cd /contml
-
-RAND_NUM=$(shuf -i 1-2000000000 -n 1)
-random_seed=$(($RAND_NUM * 2 + 1))
-echo "Seed ${random_seed}"
-
-
-#make file names
-outfile_new="outfile_54_jumble_search_${random_seed}"
-outtree_new="outtree_54_jumble_search_${random_seed}"
-echo ${outfile_new}
-echo ${outtree_new}
-
-#select J with random seed, jumble 100x and select tree with highest likelihood
-printf "F\n${outfile_new}\nC\nJ\n${random_seed}\n100\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
-#test
-#printf "F\n${outfile_new}\nC\nJ\n${random_seed}\n2\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
-
-mv ${outtree_new} outtrees_54_jumble_search/${outtree_new}.tre
-mv ${outfile_new} outfiles_54_jumble_search/${outfile_new}.txt
-
-
-echo "jumble run complete"
-```
+The infile is the infile created above from the 54 cell 20 PC matrix.
 
 Save output.
 
@@ -89,10 +68,16 @@ find ./ -size 0 -print -delete
 ## Calculate jumble scores and identify the best-scoring jumble tree
 
 ### Identify best jumble tree
+The output trees have been provided as `jumble/output/outtrees_54_jumble_search_processed.tar.gz`
+`
 ```{r id-best-jumble-tree}
 
+if(!dir.exists("jumble")){
+    dir.create("jumble")
+}
+
 #path to contml outtrees (empty files removed)
-tree_dir_path = "jumble/output/output_54_jumble_search_processed/outtrees_54_jumble_search_processed/"
+tree_dir_path = "jumble/output/outtrees_54_jumble_search_processed/"
 
 #find best jumble tree
 best_jumble_tree(tree_dir_path = tree_dir_path)
@@ -118,19 +103,18 @@ They are:
  index 223: outtree_54_jumble_search_683352147.tre
  index 234: outtree_54_jumble_search_909119069.tre
 
-Deposit these into a directory. 
 
 ### Label and score each best jumble tree
 
 ```{r label-score-jumbles}
 
 #path to contml outtrees (empty files removed)
-tree_dir_path = "jumble/output/output_54_jumble_search_processed/outtrees_54_jumble_search_processed/"
+tree_dir_path = "jumble/output/outtrees_54_jumble_search_processed/"
 #combine trees into a single multiphylo object
 multiphylo <- combine_multi_trees(tree_dir_path)
 
 #read in input matrix that was used to create the infile contml used to infer jumble trees
-matrix_path <- "jumble/input/matrix/contml_54cell_subset_pca_var_norm_20PC_mtx"
+matrix_path <- "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx/"
 mat <- Read10X(matrix_path)
 
 #list of the 14 best scoring jumble trees
