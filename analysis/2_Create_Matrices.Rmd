@@ -210,18 +210,9 @@ Congratulations! You have created the 919 cell 919 PC matrix from Fig. S1 step 7
 Because sampling is random, we have provided the 919 cell 919 PC matrix used in our analysis: 
 
 
-# Create matrices for Figure 4.  
+# Create matricecs for tree inference  
 
-## Create 919 cell 20 PC matrix (Fig. S1, step C1)
-
-```{r run-pca-20pc}
-pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs=20, print=TRUE)
-```
-/////DO NOT INCLUDE?
-
-
-
-## Create 92 cell matrix (Fig. S1, step C2) - repeatable
+## Create 92 cell matrix (Fig. S1, step C2)
 Preliminary `contml` runs were performed on a 92 cell 20 PC matrix (Fig. S1, step C2), which contains 1 cell per cell type group per species. All cell type groups (92) were retained. 
 
 Because sampling is random, we have provided the 92 cell matrix and list of sampled cells we used in our analysis:`tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/`. However, if you'd like to create a new 92 cell matrix use the below code:
@@ -251,10 +242,12 @@ file.rename("contml_92cell_subset_pca_var_norm_20PC_mtx", "tree_inference/92_cel
 
 ```
 
-## Create 54 cell matrix (Fig. S1, step C3) - repeatable
+## Create 54 cell matrix (Fig. S1, step C3)
 We further subsetted the 92 cell matrix (Fig. S1, step C2) to 54 cells (Fig. S1, step C3).
 
 The following script intakes the 92 cell 20 PC matrix (Fig. S1, step x) and remove cell type groups that either: 1) consistently failed to form clades and disrupted other cell type clades, or 2) existed only in a single species. 
+
+We provide the 92 cell 20 PC matrix as ``tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/` to facilitate reproducibility.
 
 ```{r create-54cell-mat}
 
@@ -288,34 +281,3 @@ file.rename("contml_54cell_subset_pca_var_norm_20PC_mtx", "tree_inference/54_cel
 
 This is the matrix used to create the tree in Figure 4. 
 
-//// NOT INCLUDED YET
-## Create 540 cell matrix (Fig. S1, step C4)
-This matrix is used for the single cell jackknife analysis that produced the scjackknife scores in Fig. 4.
-
-We create it by removing unstable cells and singletons from the 919 cell cross-species integrated matrix. This leaves 54 cell type groups, each with 10 cells each. This matrix contains 2000 genes.
-
-```{r create-540cell-mat}
-
-mat <- Read10X("matrix/cross-species_integration/matrix_cross-species_integrated/")
-
-black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal", "Endo", "Endo_Schlemms", "Epi-CiliaryNonPigment", "Epi-CiliaryPigment","Epi-Pigment", "MastCell", "Myoepithelium", "Neuron", "SchwalbeLine", "Uveal","Vascular","Beam-A", "Beam-X", "Epi-Corneal", "Fibroblast", "BCell")
-
-
-cell_ids <- colnames(mat)
-cell_type_ids <- sapply(strsplit(cell_ids, "_"), function(v){return(v[4])})
-
-filter_index <- which(!(cell_type_ids %in% black_list))
-
-mat_filt <- mat[,filter_index]
-
-#write matrix
-write10xCounts("matrix_540cell_cross_species_integrated_mtx", mat_filt, version="3")
-file.rename("matrix_540cell_cross_species_integrated_mtx", "figure_4/matrix/matrix_540cell_cross_species_integrated_mtx")
-```
-input:
-aqhumor_cross_species_integrated_mtx mtx md5: daa2aef295e2b7f07f80de669b8a3c1c
-
-output:
-540_aqhumor_cross_species_integrated_mtx mtx md5: d616301cc9fdda896ed4eac52268f64f
-
-NOT INCLUDED YET ///
