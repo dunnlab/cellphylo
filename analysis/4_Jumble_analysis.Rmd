@@ -13,7 +13,7 @@ library(ape)
 library(phangorn)
 library(proxy)
 
-setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
+setwd("~/repo/cellphylo/analysis")
 
 ```
 

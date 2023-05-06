@@ -178,8 +178,8 @@ p3
 ```
 This produces the matrix `mtrix/cross-species_integration/aqhumor_cross_species_integrated_mtx"` and also an R object `cross_species_integrated.rds` that is the Seurat object created by this workflow.
 
-***** **STOP HERE** *****
 
+////DO NOT INCLUDE?
 #7. PCA: rotation and rank reduction of the data 
 Fig. S1 step 7
 
@@ -217,46 +217,49 @@ Because sampling is random, we have provided the 919 cell 919 PC matrix used in 
 ```{r run-pca-20pc}
 pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs=20, print=TRUE)
 ```
+/////DO NOT INCLUDE?
 
 
-## Create 92 cell matrix (Fig. S1, step C2)
+
+## Create 92 cell matrix (Fig. S1, step C2) - repeatable
 Preliminary `contml` runs were performed on a 92 cell 20 PC matrix (Fig. S1, step C2), which contains 1 cell per cell type group per species. All cell type groups (92) were retained. 
 
-Because sampling is random, we have provided the 92 cell matrix we used in our analysis:`contml_92cell_subset_pca_var_norm_20PC_mtx/`. However, if you'd like to create a new 92 cell matrix use the below code:
+Because sampling is random, we have provided the 92 cell matrix and list of sampled cells we used in our analysis:`tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/`. However, if you'd like to create a new 92 cell matrix use the below code:
 
 ```{r create-92cell-mat}
 #deposit matrix in folder
-if(!dir.exists("figure_4")){
-  dir.create("figure_4")
+if(!dir.exists("tree_inference")){
+  dir.create("tree_inference")
 }
 
-if(!dir.exists("figure_4/matrix")){
-  dir.create("figure_4/matrix")
+if(!dir.exists("tree_inference/92_cell_tree")){
+  dir.create("tree_inference/92_cell_tree")
 }
 
-#this prints out a list of randomly subsetted cells, 1 cell per cell type group per species
-subset_mat <- subset_combined_matrix(matrix_path = "matrix/cross-species_integration/matrix_cross-species_integrated", sample_size=1, print=TRUE)
+#this prints out a list of randomly subsetted cells, 1 cell per cell type group per species. 
+subset_mat <- subset_combined_matrix(matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", sample_size=1, print=TRUE)
 #This produces a list of cells that have been subsetted from the cross-species integrated matrix
 
-file.rename("matrix_combined_92cell_subset_mtx", "figure_4/matrix/matrix_combined_92cell_subset_mtx")
-file.rename("matrix_combined_92cell_subset.txt", "figure_4/matrix/matrix_combined_92cell_subset.txt")
+file.rename("aqhumor_cross_species_92_subset_mtx", "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset_mtx")
+
+file.rename("aqhumor_cross_species_92_subset.txt", "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset.txt")
 
 #The list that is produced is then used to subset the 919 cell 919 PC matrix. We can use the run_pca() command to do so.
-subset_mat_pca <- run_pca(matrix_path = "matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs = 20, subset_file_path = "figure_4/matrix//matrix_combined_92cell_subset.txt", print=TRUE)
+subset_mat_pca <- run_pca(matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", n_PCs = 20, subset_file_path = "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset.txt", print=TRUE)
 
-file.rename("matrix/PCA/contml_92cell_subset_20PC_mtx", "figure_4/matrix/contml_92cell_subset_20PC_mtx")
+file.rename("contml_92cell_subset_pca_var_norm_20PC_mtx", "tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx")
 
 ```
 
-## Create 54 cell matrix (Fig. S1, step C3)
+## Create 54 cell matrix (Fig. S1, step C3) - repeatable
 We further subsetted the 92 cell matrix (Fig. S1, step C2) to 54 cells (Fig. S1, step C3).
 
 The following script intakes the 92 cell 20 PC matrix (Fig. S1, step x) and remove cell type groups that either: 1) consistently failed to form clades and disrupted other cell type clades, or 2) existed only in a single species. 
 
 ```{r create-54cell-mat}
 
-#for reproducibility, use the 92 cell matrix provided by Mah & Dunn (2023)
-mat <- Read10X("contml_92cell_subset_pca_var_norm_20PC_mtx")
+#for reproducibility, we have provided the 92 cell 20 PC matrix
+mat <- Read10X("tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/")
 
 #remove unstable cells or singletons
 black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal", "Endo", "Endo_Schlemms", "Epi-CiliaryNonPigment", "Epi-CiliaryPigment","Epi-Pigment", "MastCell", "Myoepithelium", "Neuron", "SchwalbeLine", "Uveal","Vascular","Beam-A", "Beam-X", "Epi-Corneal", "Fibroblast", "BCell")
@@ -270,19 +273,22 @@ filter_index <- which(!(cell_type_ids %in% black_list))
 mat_filt <- mat[filter_index,]
 
 #write matrix
-#write10xCounts("contml_57cell_subset_pca_var_norm_20PC_mtx", mat_filt, version="3")
-write10xCounts("contml_54cell_subset_20PC_mtx", mat_filt, version="3")
 
-file.rename("contml_54cell_subset_20PC_mtx", "figure_4/matrix/contml_54cell_subset_20PC_mtx")
+write10xCounts("contml_54cell_subset_pca_var_norm_20PC_mtx", mat_filt, version="3")
+
+if(!dir.exists("tree_inference")){
+   dir.create("tree_inference")}
+
+if(!dir.exists("tree_inference/54_cell_tree")){
+    dir.create("tree_inference/54_cell_tree")
+    }
+file.rename("contml_54cell_subset_pca_var_norm_20PC_mtx", "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx")
 
 ```
 
 This is the matrix used to create the tree in Figure 4. 
 
-We provide this matrix and infile as:
-`contml_54cell_subset_pca_var_norm_20PC_mtx`
-`infile_54_20PC`  
-
+//// NOT INCLUDED YET
 ## Create 540 cell matrix (Fig. S1, step C4)
 This matrix is used for the single cell jackknife analysis that produced the scjackknife scores in Fig. 4.
 
@@ -312,4 +318,4 @@ aqhumor_cross_species_integrated_mtx mtx md5: daa2aef295e2b7f07f80de669b8a3c1c
 output:
 540_aqhumor_cross_species_integrated_mtx mtx md5: d616301cc9fdda896ed4eac52268f64f
 
-
+NOT INCLUDED YET ///

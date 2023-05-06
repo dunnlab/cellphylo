@@ -54,11 +54,10 @@ subset_combined_matrix <- function(matrix_path, sample_size, print){
   if (print==TRUE){
 
     #write list of subsampled cells
-    write.table(selected, paste0("matrix_combined_",n_subset, "cell_subset.txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)
+    write.table(selected, paste0("aqhumor_cross_species_",n_subset, "_subset.txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)
 
     #write subsampled matrix
-    write10xCounts(paste0("matrix_combined_",n_subset, "cell_subset_mtx"), mat.sparse, version="3")
-
+    write10xCounts(paste0("aqhumor_cross_species_",n_subset, "_subset_mtx"), mat.sparse, version="3")
   }
 
   return(mat.sparse)

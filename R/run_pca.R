@@ -67,18 +67,18 @@ run_pca <- function(matrix_path, n_PCs=20, subset, subset_file_path, print=TRUE)
   mat.sparse <- as.sparse(x.sub)
 
   if (print==TRUE){
-    if(!dir.exists("matrix")){
-      dir.create("matrix")
-    }
+    #if(!dir.exists("matrix")){
+    #  dir.create("matrix")
+    #}
 
     #create a directory for the combined matrix
-    if(!dir.exists("matrix/PCA")){
-      dir.create("matrix/PCA")
-    }
+    #if(!dir.exists("matrix/PCA")){
+    #  dir.create("matrix/PCA")
+    #}
 
     #write matrix
-    write10xCounts(path=paste0("contml_", nrow(x.sub), "cell_subset_", n_PCs, "PC_mtx"), x= mat.sparse, version="3")
-    file.rename(paste0("contml_", nrow(x.sub), "cell_subset_", n_PCs, "PC_mtx"), paste0("matrix/PCA/contml_",nrow(x.sub), "cell_subset_", n_PCs, "PC_mtx"))
+    write10xCounts(path=paste0("contml_", nrow(x.sub), "cell_subset_pca_var_norm_", n_PCs, "PC_mtx"), x= mat.sparse, version="3")
+    #file.rename(paste0("contml_", nrow(x.sub), "cell_subset_pca_var_norm+", n_PCs, "PC_mtx"), paste0("matrix/PCA/contml_",nrow(x.sub), "cell_subset_pca_var_norm_", n_PCs, "PC_mtx"))
 
   } #close if print
 
