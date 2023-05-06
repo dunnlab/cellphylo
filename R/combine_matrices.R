@@ -76,9 +76,9 @@ combine_matrices <- function(matrix_list, ortholog_map_path, print=TRUE){
       dir.create("matrix/combined_by_orthology")
     }
 
-  write10xCounts("matrix_combined", full_join_sparse, version="3")
+  write10xCounts("aqhumor_combined_mtx", full_join_sparse, version="3")
   #move matrix to its own folder
-  file.rename("matrix_combined", "matrix/combined_by_orthology/matrix_combined")
+  file.rename("aqhumor_combined_mtx", "matrix/combined_by_orthology/aqhumor_combined_mtx")
 
   }
   return(full_join_sparse)

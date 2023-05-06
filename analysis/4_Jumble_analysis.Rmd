@@ -1,0 +1,201 @@
+---
+title: "Jumble trees"
+output: html_notebook
+---
+
+# Jumble tree analysis
+The following workflow was  used to estimate 'jumble trees' - replicate trees inferred from a single data set by jumbling the order of input taxa to contml. The clade frequency across these jumble trees were used as "jumble scores", a measure of technical repeatability. 
+
+# Setup
+```{r setup}
+library(Seurat)
+library(ape)
+library(phangorn)
+library(proxy)
+
+setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
+
+```
+
+
+# Jumble analysis
+
+This workflow calculates jumble trees, removes errored files, and then calculates jumble scores.
+
+## Create infile for jumble tree
+
+The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C3). See `2_Create_Matrices.Rmd`.  
+
+```{r}
+
+make_infile(matrix_path = "figure_4/matrix/contml_54cell_subset_20PC_mtx/", print=TRUE)
+
+```
+
+
+## Infer jumble trees from contml runs
+
+The following bash script was used to calculate jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis.
+
+The `contml` settings:
+  C: continuous characters
+  J:   Randomize input order of species (jumble)
+    Random number to seed (see bash script)
+    Number of times to jumble: 100
+  G: Global rearrangements
+  
+Infile has been provided: infile_54_20PC
+  
+```
+#!/bin/bash
+
+#Max Jumble seed is 10 digits (4294967293). Draw random number and make it odd x*2 +1. Max value of x is 2147483645.5.
+
+cd /contml
+
+RAND_NUM=$(shuf -i 1-2000000000 -n 1)
+random_seed=$(($RAND_NUM * 2 + 1))
+echo "Seed ${random_seed}"
+
+
+#make file names
+outfile_new="outfile_54_jumble_search_${random_seed}"
+outtree_new="outtree_54_jumble_search_${random_seed}"
+echo ${outfile_new}
+echo ${outtree_new}
+
+#select J with random seed, jumble 100x and select tree with highest likelihood
+printf "F\n${outfile_new}\nC\nJ\n${random_seed}\n100\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
+#test
+#printf "F\n${outfile_new}\nC\nJ\n${random_seed}\n2\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
+
+mv ${outtree_new} outtrees_54_jumble_search/${outtree_new}.tre
+mv ${outfile_new} outfiles_54_jumble_search/${outfile_new}.txt
+
+
+echo "jumble run complete"
+```
+
+Save output.
+
+## Remove missing/errored files
+Some Jumble runs may error and produce no tree. We must remove those files.
+
+Delete any empty tree files using the bash command.
+```
+find ./ -size 0 -print -delete
+```
+
+## Calculate jumble scores and identify the best-scoring jumble tree
+
+### Identify best jumble tree
+```{r id-best-jumble-tree}
+
+#path to contml outtrees (empty files removed)
+tree_dir_path = "jumble/output/output_54_jumble_search_processed/outtrees_54_jumble_search_processed/"
+
+#find best jumble tree
+best_jumble_tree(tree_dir_path = tree_dir_path)
+list.files(tree_dir_path)
+
+```
+
+14 jumble trees tied for best sum of scores.
+
+They are:
+ index 18: outtree_54_jumble_search_1235256431.tre
+ index 20: outtree_54_jumble_search_1249177875.tre
+ index 56: outtree_54_jumble_search_1790537341.tre
+ index 82: outtree_54_jumble_search_2214045959.tre
+ index 94: outtree_54_jumble_search_2481088323.tre
+ index 103: outtree_54_jumble_search_2642665967.tre
+ index 123: outtree_54_jumble_search_2892552345.tre
+ index 149 :outtree_54_jumble_search_3280076499.tr
+ index 169: outtree_54_jumble_search_3567552921.tre
+ index 209: outtree_54_jumble_search_542946467.tre
+ index 211: outtree_54_jumble_search_545341417.tre
+ index 217: outtree_54_jumble_search_61674183.tre
+ index 223: outtree_54_jumble_search_683352147.tre
+ index 234: outtree_54_jumble_search_909119069.tre
+
+Deposit these into a directory. 
+
+### Label and score each best jumble tree
+
+```{r label-score-jumbles}
+
+#path to contml outtrees (empty files removed)
+tree_dir_path = "jumble/output/output_54_jumble_search_processed/outtrees_54_jumble_search_processed/"
+#combine trees into a single multiphylo object
+multiphylo <- combine_multi_trees(tree_dir_path)
+
+#read in input matrix that was used to create the infile contml used to infer jumble trees
+matrix_path <- "jumble/input/matrix/contml_54cell_subset_pca_var_norm_20PC_mtx"
+mat <- Read10X(matrix_path)
+
+#list of the 14 best scoring jumble trees
+tree_list <- c("outtree_54_jumble_search_1235256431.tre", "outtree_54_jumble_search_1249177875.tre", "outtree_54_jumble_search_1790537341.tre","outtree_54_jumble_search_2214045959.tre", "outtree_54_jumble_search_2481088323.tre","outtree_54_jumble_search_2642665967.tre","outtree_54_jumble_search_2892552345.tre","outtree_54_jumble_search_3280076499.tre",  "outtree_54_jumble_search_3567552921.tre", "outtree_54_jumble_search_542946467.tre", "outtree_54_jumble_search_545341417.tre","outtree_54_jumble_search_61674183.tre", "outtree_54_jumble_search_683352147.tre", "outtree_54_jumble_search_909119069.tre") %>% as.list()
+
+#create a directory to deposit labelled trees
+dir.create("jumble/best_trees")
+
+#label tips and jumble scores of the best-scoring jumble trees.
+labelled_trees <- lapply(tree_list, function(trees){
+  focal_tree_path <- paste0(tree_dir_path,trees)
+  
+  #score tree
+  tree <- score_jumble(multiphylo = multiphylo, focal_tree_path = focal_tree_path, print=FALSE)
+
+  #label tree
+  #connect cell ids to index 
+  key.df <- data.frame(cell_id = rownames(mat), index = as.character(c(1:nrow(mat))))
+
+  #find tip label
+  tips.df <- data.frame(index = tree$scored$tip.label)
+
+  #connect tip id to cell id
+  new_tip.df <- left_join(tips.df, key.df, by="index")
+
+  #replace old tip indices with new tip cell id labels
+  tree$scored$tip.label <- new_tip.df$cell_id
+  
+  file_name = trees
+  
+  #write the labelled trees out to file
+  write.tree(tree$scored, file=paste0("jumble/best_trees/",file_name))
+  
+  return(tree)
+})
+
+
+```
+
+
+### Choose the most representative 'best tree'
+There are 14 best trees tied for best sum/mean of jumble scores. Choose the tree that is most representative of the best trees. This tree is plotted in Figure 4 of Mah & Dunn (2023).
+
+
+```{r}
+
+#create a multiphylo of best trees
+tree_dir_path <- "jumble/best_trees/"
+multiphylo <- combine_multi_trees(tree_dir_path)
+
+#make a distance matrix. See phangorn::treedist for description of distance metrics.
+#using Robinson-Foulds distance
+RF_dist_mtx <- RF.dist(multiphylo) #all distances0
+#using path distance
+path_dist_mtx <- path.dist(multiphylo) #all distances 0
+#using Kuhner & Felsenstein (1994) distance.
+KF_dist_mtx <- KF.dist(multiphylo) #distances vary when branch length is taken into account
+
+#which tree has the smallest sum of KF_dists?
+KF_mat <- as.matrix(KF_dist_mtx)
+colsums <- colSums(KF_mat)
+min <- min(colsums) #0.2320657
+
+
+```
+
+The tree with the minimum *unrounded* Kuhner-Felsenstein distance with all other "best trees" is outtree_54_jumble_search_1249177875.tre.  Thus, this tree and its jumble scores was chosen to provide the topology of the tree in Figure 4.  
+

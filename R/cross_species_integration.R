@@ -92,9 +92,9 @@ cross_species_integration <- function(matrix_path, min_cells = 3, min_features =
       dir.create("matrix/cross-species_integration")
     }
   saveRDS(combined, "cross_species_integrated.rds")
-  write10xCounts("matrix_cross-species_integrated", integrated, version="3")
+  write10xCounts("aqhumor_cross_species_integrated_mtx", integrated, version="3")
   #move the matrix into the folder
-  file.rename("matrix_cross-species_integrated", "matrix/cross-species_integration/matrix_cross-species_integrated")
+  file.rename("aqhumor_cross_species_integrated_mtx", "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx")
 
 
   }

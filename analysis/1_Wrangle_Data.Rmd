@@ -1,0 +1,116 @@
+---
+title: "Wrangle_Data"
+output: html_document
+date: "2023-04-22"
+---
+
+# Wrangle data
+This notebook walks you through wrangling the pilot data into cellphylo format. This code is meant to be used with the data published by van Zyl et al. (2020).
+
+The end product of this notebook are UMI matrices in `cellphylo` format.
+
+# Preliminaries  
+```{r setup}
+#set working directory
+setwd("~/repo/cellphylo/analysis/")
+
+
+```
+
+
+# Wrangle data  
+We use the single cell atlas from [van Zyl et al.   (2020)](https://doi.org/10.1073/pnas.2001250117) as our pilot data.  
+
+Download the meta data file provided by van Zyl et al. (2020):   [all_five_species_metafile.csv](https://singlecell.broadinstitute.org/single_cell/study/SCP780/).
+This meta data file has information on sample ID, cell barcode and cluster ID (which corresponds to "cell type groups" in Mah & Dunn 2023).  
+Deposit the meta data file in the `./ann` directory.  
+
+## Wrangle the meta data file. 
+```{r wrangle-metadata}
+
+wrangled_meta <- wrangle_metadata(path_to_meta_file="./ann/all_five_species_metafile.csv")
+
+```
+
+This creates and deposites `all_five_species_metafile_wrangled.csv` in the `ann` directory. This file has parsed out the cell identifier (used by van Zyl as the cell names in the UMI matriecs), cluster_id, sample_id and cell_barcode.  
+
+## Wrangle UMI matries  
+Download the raw UMi matrices from NCBI GEO database (GSE146188).  
+
+[human](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148371)  
+[macF (Macaca fascicularis)](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148373)  
+[macM (Macaca mulatta)](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148374)  
+[mouse](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE146186)  
+[pig](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE146187)  
+
+Deposit these gzipped files in `matrix/raw_csv`.  
+
+### Convert csv files to 10x-style sparse matrices  
+
+Convert the CSV files to 10x-style feature-barcode matrices. Sparse matrix format is easier to work with.  
+
+```{r convert-to-10x}
+
+#human
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148371_Human_count_matrix.csv.gz" ,  species_name = "human")
+#macF
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148373_MacaF_count_matrix.csv.gz" ,  species_name = "macF")
+#macM 
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE148374_MacaqueM_count_matrix.csv.gz", species_name = "macM")
+#mouse
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE146186_Mouse_count_matrix.csv.gz" , species_name = "mouse")
+#pig
+convert_to_10x(path_to_csv = "matrix/raw_csv/GSE146187_Pig_count_matrix.csv.gz" , species_name = "pig")
+
+```
+Matrices are deposited in `matrix/10x/`.  
+
+### Convert cell identifiers to cellphylo format  
+
+Cell identifiers in the raw matrix provided by van Zyl et al.(2020) are currently:  
+  <sample_id>_<cell_barcode>.  
+
+Convert cell identifiers to `cellphylo` format.  
+
+The cellphylo format is:  
+  <species>_<sample_id>_<cluster_id>_<cell_type_id>_<cell_barcode>  
+
+The fields are:  
+  - species: species or animal name  
+  - sample id: the id of the sequencing batch sample. Within-species integration will act on these batches.  
+  - cluster id: aka 'cell type group' - the cluster id assigned by van Zyl et al. (2020). This consists of a cluster number (where present) and the cell type label.  
+  - cell_type_id: the cell type label.  
+
+This format is crucial as this information will be parsed repeatedly during cellphylo analysis from the cell names.  
+
+```{r wrangle-matrix-names}
+
+#convert cell identifiers to cellphylo format and create a new matrix with this new format
+metadata_file = "ann/all_five_species_metafile_wrangled.csv" 
+
+
+#human
+wrangled_mat_human <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_human", metadata_file = metadata_file, species = "human")
+#macF
+wrangled_mat_macF <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_macF", metadata_file = metadata_file, species = "macF")
+#macM
+wrangled_mat_macM <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_macM", metadata_file = metadata_file, species = "macM")
+#mouse
+wrangled_mat_mouse <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_mouse", metadata_file = metadata_file, species = "mouse")
+#pig
+wrangled_mat_pig <- wrangle_matrix(path_to_mat = "matrix/10x/matrix_10x_pig", metadata_file = metadata_file, species = "pig")
+
+
+#check that cell ids are in cell phylo format
+colnames(wrangled_mat)
+
+```
+
+
+Congrats! You have matrices in cellphylo format. :)  
+
+
+# Citation
+van Zyl, T., Yan, W., McAdams, A., Peng, Y. R., Shekhar, K., Regev, A., ... & Sanes, J. R. (2020). Cell atlas of aqueous humor outflow pathways in eyes of humans and four model species provides insight into glaucoma pathogenesis. Proceedings of the National Academy of Sciences, 117(19), 10339-10349.
+
+
