@@ -109,7 +109,7 @@ We have included the scripts in `scjackknife/input_scjack_540_TBE/scjack_scripts
 
 Now execute the scjackknife analysis on a cluster using the provided bash script `scripts/run_scjack_parallel_540_TBE.sh`.
 
-This produced 500 outtrees and outfiles representing a scjackknife tree inferred from each resampled 54 cell matrix.
+This produced 500 outtrees representing a scjackknife tree inferred from each resampled 54 cell matrix. These trees have been provided as `analysis/scjackknife/output/raw/outtrees_scjack_540_TBE`
 
 # Process output files
 Some `contml` runs may have errored out, producing empty `outtree` files. Remove these files
@@ -119,21 +119,15 @@ Delete any empty tree files
 find ./ -size 0 -print -delete
 ```
 
-Copy `outfiles` that are not empty into a new folder
-
-```
-find . -type f -print| xargs grep "Ln Likelihood"| cut -d ":" -f 1| xargs -I '{}' cp '{}' ../outfiles_scjack_540_TBE_processed/
-```
-
 There are 439 scjackknife trees remaining.
 
-Moving forward, use the directories of `outtrees` and `outfiles` that have had errored runs removed for downstream analyses.
+Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. This directory has been provided as `output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_processed`.
 
-Removing files causes the index between the scjack matrices and `outtree` and `outfile` files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
+Removing files causes the index between the scjack matrices and `outtree` and matrix files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
 
 ```{r id-errored-runs}
-outtrees_dir = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE/outtrees_scjack_540_TBE/"
-matrix_name_pattern = "scjackknife_540_TBE"
+outtrees_dir = "scjackknife/output/raw/outtrees_scjack_540_TBE/"
+matrix_name_pattern = "scjack_540_TBE"
 
 id_errored_runs(outtrees_dir = outtrees_dir, matrix_name_pattern = matrix_name_pattern)
 
@@ -141,39 +135,43 @@ id_errored_runs(outtrees_dir = outtrees_dir, matrix_name_pattern = matrix_name_p
 
 The above function provides a list of matrices whose `contml` runs errored. Use this list to remove these matrices using bash:
 ```
-cd scjack_matrices
+cd analysis/scjackknife/input_scjack_540_TBE/scjack_matrices
 rm -r $(<errored_runs.txt)
 
 ```
-Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis.
+Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. This has been provided as `scjackknife/output/output_scjack_540_TBE_processed/scjack_matrices_processed`
 
-The processed outtree folder 
-# Calculate the scjack scores
+# Prepare input files for Booster.
 
-## Prepare input files for Booster.
+## Add common labels to scjackknife trees
+scjackknife trees must share common labels in order to calculate the TBE. Label the scjackknife trees with their full cell ids and an abbreviated cell id that can be matched across scjackknife trees.
 
-```{r boot-files}
 
-#Prepare scjackknife trees
-# scjackknife trees must share common labels in order to calculate the TBE. Label the scjackknife trees with their full cell ids and an abbreviated cell id that can be matched across scjackknife trees.
+```{r prep-scjack-boost}
 
 n_trees =439
-matrix_dir_path = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE_processed/scjack_matrices_processed/"
-tree_dir_path = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_processed/"
+matrix_dir_path = "scjackknife/output/output_scjack_540_TBE_processed/scjack_matrices_processed/"
+tree_dir_path = "scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_processed/"
 file_name_prefix = "outtrees_scjack_540_TBE"
 
 labelled_trees <- label_scjack_trees(n_trees = n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path, print=TRUE, file_name_prefix=file_name_prefix)
 
-#combine and print out as a single tree file
-multi_trees <- combine_multi_trees("~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/scjack_run/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_common_label/")
+```
 
-write.tree(multi_trees, file="multiphylo_scjack_540_TBE_common_label.tre")
+These labelled trees are provided in:
+`scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_common_label`
+`scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_label`
 
+## Add common labels to focal tree
+
+The focal tree must also have the common labels
+```{r prep-focal-boost}
 
 #The phylogeny to calculate TBE scores for must also share common labels with the scjackknife trees.
-tree <- read.tree("aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/outtree_54_jumble_search_1249177875.tre")
+#below is the tree used for Fig. 4
+tree <- read.tree("jumble/output/outtrees_54_jumble_search_processed/outtree_54_jumble_search_1249177875.tre")
 
-labelled_tree <- label_tree(matrix_path = "aqhumor_final/jumble/54_jumble_search/contml_54cell_subset_pca_var_norm_20PC_mtx/", tree_path = "aqhumor_final/scjackknife/scjack_54_jumble_search_TBP/outtree_54_jumble_search_1249177875.tre", file_name = "outtree_54_jumble_search_1249177875_label.tre", print=TRUE)
+labelled_tree <- label_tree(matrix_path = "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx/", tree_path = "jumble/output/outtrees_54_jumble_search_processed/outtree_54_jumble_search_1249177875.tre", file_name = "outtree_54_jumble_search_1249177875_label.tre", print=FALSE)
 
 #make new labels - code stolen from scjack label
 species <- sapply(strsplit(labelled_tree$tip.label, "_"), function(v){return(v[1])})
@@ -183,12 +181,25 @@ common_labels_tree <- labelled_tree
 common_labels_tree$tip.label <- new_label
 #print out common labels tree
 write.tree(common_labels_tree, file="outtree_54_jumble_search_1249177875_common_label.tre")
+
+
+
+```
+
+#Combine common label scjackknife trees in a single multiphylo file
+```{r boost-files}
+
+#combine and print out as a single tree file
+multi_trees <- combine_multi_trees("scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_common_label/")
+
+write.tree(multi_trees, file="multiphylo_scjack_540_TBE_common_label.tre")
+
     
 ```
 
 ## Run booster to calculate TBE scores
 ```
-../../booster/booster_macos64 -i outtree_54_jumble_search_1249177875_common_label.tre -b multiphylo_scjack_540_TBE_common_label.tre  > outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre
+./booster/booster_macos64 -i outtree_54_jumble_search_1249177875_common_label.tre -b multiphylo_scjack_540_TBE_common_label.tre  > outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre
 ```
 
 This produces a tree, `outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre`, with TBE scores plotted at nodes. These TBE scores were used in Fig. 4 as the scjackknife scores.
