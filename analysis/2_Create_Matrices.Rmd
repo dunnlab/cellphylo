@@ -69,8 +69,10 @@ Fig. S1 step 4
 ### Identify the cell type with the fewest replicates
 To make later analyses computationally feasible, we randomly subset each species' matrix so that all cell type groups across all five species have the same number of replicates. This means subsetting to the smallest number of replicates displayed by any one cell type group.  
 
+
 ```{r count-replicates}
 
+#"within-species" is the directory of matrices to quantify cell type group replicates
 count_replicates("matrix/within-species")
 
 ```
@@ -105,7 +107,6 @@ Fig. S1 step 5
 
 We will combine the species matrix into a single matrix based on shared orthlogs.  
 
-********START HERE***********
 ### Wrangle the orthlogs table  
 
 Gene symbols vary between species. We need to create a mapping between gene symbols before we can combine the species' matrices by gene orthology. We will obtain this mapping from [Ensembl Biomart](https://www.ensembl.org/biomart/martview/).  
