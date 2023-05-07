@@ -1,6 +1,5 @@
 ---
-title: "Create Base Matrix"
-output: html_notebook
+title: "Create matrices"
 ---
 
 Run `1_wrangle_data.Rmd` to wrangle UMI matrices into cellphylo format (Fig. S1, step 1).
@@ -177,37 +176,6 @@ p3 <- DimPlot(cross_species_int, reduction = "umap", group.by = "cell_type_id", 
 p3
 ```
 This produces the matrix `mtrix/cross-species_integration/aqhumor_cross_species_integrated_mtx"` and also an R object `cross_species_integrated.rds` that is the Seurat object created by this workflow.
-
-
-////DO NOT INCLUDE?
-#7. PCA: rotation and rank reduction of the data 
-Fig. S1 step 7
-
-## Inspect the distribution of variance across principal components
-```{r plot-eigenvalues}
-eig_plots <- plot_eigs(matrix_path = "matrix/cross-species_integration/matrix_cross-species_integrated/", highlight=20, print=TRUE)
-
-```
-
-This produces four plots:
-1_eigenvalue_vs_PC: plot of eigenvalues against PCs. PC 20 is indicated with a red dot for Mah & Dunn (2023)
-2_eigenvalue_cumulative_sum: cumulative sum of eigenvalues plotted against PCs
-3_eigenvalue_vs_variance: plot of eigenvalue vs percentage variance described by each PC.
-4_eigenvalue plot of percenrtage variance described by each PC against PCs. PC 20 is indicated wiht a red dot for Mah & Dunn (2023.)
-
-From these plots we can identify an elbow at PC20. 
-
-## Use PCA to rotate and rank reduce the matrix
-
-Perform PCA on the matrix. Mean-centre before PCA and normalize variance by standard deviation. 
-```{r run-pca}
-pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/matrix_cross-species_integrated", n_PCs=919, print=TRUE)
-```
-
-
-Congratulations! You have created the 919 cell 919 PC matrix from Fig. S1 step 7. ALl other experiments and figures are based on this matrix.
-
-Because sampling is random, we have provided the 919 cell 919 PC matrix used in our analysis: 
 
 
 # Create matricecs for tree inference  
