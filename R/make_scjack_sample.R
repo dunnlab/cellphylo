@@ -19,24 +19,24 @@ make_scjack_sample <- function(n_samples, subsample_matrix_path, full_matrix_pat
    full_pca_mat <- Read10X(full_matrix_path)
 
    #make directories to organize
-   if(!dir.exists("figure_4")){
-     dir.create("figure_4")
+   if(!dir.exists("scjackknife")){
+     dir.create("scjackknife")
    }
 
-   if(!dir.exists("figure_4/scjack_analysis/")){
-     dir.create("figure_4/scjack_analysis/")
+   if(!dir.exists(paste0("scjackknife/input_", file_name))){
+     dir.create(paste0("scjackknife/input_", file_name))
    }
 
-   if(!dir.exists("figure_4/scjack_analysis/scjack_selected_cells")){
-     dir.create("figure_4/scjack_analysis/scjack_selected_cells")
+   if(!dir.exists(paste0("scjackknife/input_", file_name,"/scjack_selected_cells"))){
+     dir.create(paste0("scjackknife/input_", file_name,"/scjack_selected_cells"))
    }
 
-   if(!dir.exists("figure_4/scjack_analysis/scjack_matrices")){
-     dir.create("figure_4/scjack_analysis/scjack_matrices")
+   if(!dir.exists(paste0("scjackknife/input_", file_name,"/scjack_matrices"))){
+     dir.create(paste0("scjackknife/input_", file_name,"/scjack_matrices"))
    }
 
-   if(!dir.exists("figure_4/scjack_analysis/scjack_infiles")){
-     dir.create("figure_4/scjack_analysis/scjack_infiles")
+   if(!dir.exists(paste0("scjackknife/input_", file_name, "/scjack_infiles"))){
+     dir.create(paste0("scjackknife/input_", file_name, "/scjack_infiles"))
    }
 
   sapply(n_samples, function(n_samples){
@@ -58,13 +58,13 @@ make_scjack_sample <- function(n_samples, subsample_matrix_path, full_matrix_pat
 
     ## record the subsampled cell ids
     write.table(subset_list, paste0("scjackknife_", file_name,"_selected_cells_",n_samples, ".txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)
-    file.rename(paste0("scjackknife_", file_name,"_selected_cells_",n_samples, ".txt"), paste0("figure_4/scjack_analysis/scjack_selected_cells/scjackknife_", file_name,"_selected_cells_",n_samples, ".txt"))
+    file.rename(paste0("scjackknife_", file_name,"_selected_cells_",n_samples, ".txt"), paste0("scjackknife/input_", file_name,"/scjack_selected_cells/scjackknife_", file_name,"_selected_cells_",n_samples, ".txt"))
     ## write out subasmpled matrix
     write10xCounts(paste0("scjackknife_", file_name,"_",n_samples, "_mtx"),  pca_matrix, version="3")
-    file.rename(paste0("scjackknife_", file_name,"_",n_samples, "_mtx"), paste0("figure_4/scjack_analysis/scjack_matrices/scjackknife_", file_name,"_",n_samples, "_mtx"))
+    file.rename(paste0("scjackknife_", file_name,"_",n_samples, "_mtx"), paste0("scjackknife/input_", file_name,"/scjack_matrices/scjackknife_", file_name,"_",n_samples, "_mtx"))
     ## phylip infile
     write.table(phylip, file=paste0("infile_scjackknife_", file_name,"_", n_samples), quote=FALSE, sep=" ", row.names=FALSE, col.names=FALSE, na= "")
-    file.rename(paste0("infile_scjackknife_", file_name,"_", n_samples), paste0("figure_4/scjack_analysis/scjack_infiles/infile_scjackknife_", file_name,"_", n_samples))
+    file.rename(paste0("infile_scjackknife_", file_name,"_", n_samples), paste0("scjackknife/input_", file_name,"/scjack_infiles/infile_scjackknife_", file_name,"_", n_samples))
 
     return(pca_matrix)
 

@@ -71,22 +71,23 @@ We do this 500 times to create 500 resampled 54 cell matrices. Each matrix is tr
 
 This function will print out the 54 cell subsampled matrices as 10x feature-barcode matrices, infiles, and the list of cell ids present in each matrix.
 
+Since the scjackknife matrices are random, we have included the input as `scjackknife/input_scjack_540_TBE.tar.gz`
 
 ```{r create-scjack-sample}
 
 # The matrix to subsample cells from. This is the 540 cell matrix (Fig. S1, step C4)
-subsample_matrix_path = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/matrix_final/integrated/cross_species/cross_species_integrated/540_aqhumor_cross_species_integrated_mtx/"
+subsample_matrix_path = "scjackknife/matrix_540cell_cross_species_integrated_mtx/"
 # The matrix to draw values from. This should be the 919 cell 20 PC matrix (Fig. S1, step C1)
 full_matrix_path = "scjackknife/contml_919cell_subset_20PC_mtx/"
 #number of scjack samples to make
-n_samples = c(1:500)
+n_samples = c(1:10)
 
 #function calls: subset_combined_matrix(), run_pca(), and make_infile()
 scjack_sample <- make_scjack_sample(n_samples = n_samples, subsample_matrix_path = subsample_matrix_path, full_matrix_path = full_matrix_path, file_name="540_TBE")
 
 ```
 
-# Run contml on the scjack infiles
+# Create scripts to infer scjackknife trees with contml
 Use the infiles created above to run `contml`.
 
 `contml` was run using the same options as for the jumble trees:
@@ -96,144 +97,18 @@ Use the infiles created above to run `contml`.
 
 We ran this on a hpc cluster using 64 vCPUs and running 50 `contml` commands in parallel at a time. This took 4-5 hours.
 
-Each scjack `contml` run requires its own bash script. We created and executed 500 bash scripts using the following workflwo:
+Each scjack `contml` run requires its own bash script. We created and executed 500 bash scripts using the following workflow:
 
-## Template script: in_script_scjack_parallel_540_TBE.sh
-We created a template for the script that is executed for each contml run.
+1. We created a template for the script that is executed for each contml run. This has been provided as `analysis/scripts/in_script_scjack_parallel_540_TBE.sh`
 
-```
-#!/bin/bash
+2. We made 500 copies of the template script. The script for this is provided as `analysis/scripts/make_reps_scjack_540_TBE.sh`.
 
-#in_script_scjack_parallel_540_TBE.sh
+3. Execute each scjackknife script in parallel. The script for this is `analysis/scripts/run_scjack_parallel_540_TBE.sh`.
 
-#run contml on infile_n
-#must not have an 'infile' indirectory - will replace with infile_n
-#must have an (empty) outfile and outtree so can set
+We have included the scripts in `scjackknife/input_scjack_540_TBE/scjack_scripts.tar.gz` for reproducibility.
 
-n=ITERATION_INDEX
+Now execute the scjackknife analysis on a cluster using the provided bash script `scripts/run_scjack_parallel_540_TBE.sh`.
 
-cd /contml
-
-echo "Run: ${n}"
-
-#create random seed for jumble
-RAND_NUM=$(shuf -i 1-2000000000 -n 1)
-random_seed=$(($RAND_NUM * 2 + 1))
-echo "seed: ${random_seed}"
-
-outfile_new="outfile_scjack_540_TBE_${n}_${random_seed}"
-outtree_new="outtree_scjack_540_TBE_${n}_${random_seed}"
-
-##CHANGE HERE
-infile="./scjack_540_infiles/infile_scjackknife_540_final_${n}"
-
-echo "outfile: ${outfile_new}"
-echo "outtree: ${outtree_new}"
-echo "infile: ${infile}"
-
-printf "${infile}\nF\n${outfile_new}\nC\nJ\n${random_seed}\n100\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
-#test
-#printf "${infile}\nF\n${outfile_new}\nC\nJ\n${random_seed}\n2\nG\nY\nF\n${outtree_new}\n"| ./phylip/phylip-3.697/exe/contml
-
-mv ${outtree_new} ./outtrees_scjack_540_TBE/${outtree_new}.tre
-mv ${outfile_new} ./outfiles_scjack_540_TBE/${outfile_new}.txt
-
-
-echo "Run ${n} complete"
-```
-
-## Make copies of template script: make_reps_scjack_540_TBE.sh
-We made 500 copies of the template script using the below script.
-
-```
-#!/bin/bash
-
-#make_reps_scjack_540_TBE
-
-### Modified from script produced by ChatGPT Dec 9 2022.
-### Prompt: "Write a bash script that iteratively reads in a text file, copies and renames it a new iterative file name, and replaces a string in the file with the iteration index. Make it do it 100 times."
-
-# Set the starting iteration index
-index=1
-
-# Set the filename of the original file
-filename="in_script_scjack_parallel_540_TBE.sh"
-
-# Set the string to be replaced in the file
-replace="ITERATION_INDEX"
-
-# Set the prefix for the new iterative filenames
-new_filename_prefix="script_scjack_540_TBE_"
-
-# Set the suffix for the new iterative filenames
-new_filename_suffix=".sh"
-
-# Set the maximum number of iterations
-max_iterations=500
-
-
-# Iterate until the original file does not exist or the maximum number of iterations is reached
-while [ -f $filename ] && [ $index -le $max_iterations ]
-do
-  # Copy and rename the file with the current iteration index
-  #don't need to do this
-  #cp $filename $new_filename_prefix$index$new_filename_suffix
-
-  # Replace the string in the copied file with the iteration index
-  #sed -i "s/$replace/$index/g" $new_filename_prefix$index$new_filename_suffix
-  #sed command did not work. Remove -i flag, input old file, pipe sed output to new file.
-  sed "s/$replace/$index/g" $filename > $new_filename_prefix$index$new_filename_suffix
-  
-  #set permissions
-  chmod u+x $new_filename_prefix$index$new_filename_suffix
-  
-  # Increment the iteration index
-  index=$((index+1))
-  
-done
-```
-
-## Script to execute the scjackknife analysis on cluster: run_scjack_parallel_540_TBE.sh
-
-The above workflow created:
-- 500 infiles representing 500 resampled 54 cell matrices
-- 500 contml scripts to execute a contml run for each infile
-
-Now execute the scjackknife analysis on a cluster using the below script:
-```
-#!/bin/bash
-
-#run_scjack_parallel_540_TBE.sh
-
-#run Jumble in parallel
-#only want to set up directories once
-#need 1 empty outfile and outtree so you can indicate indiividual names for output files
-
-cd /contml
-
-mkdir outtrees_scjack_540_TBE
-mkdir outfiles_scjack_540_TBE/
-
-#make an empty outfile and outtree so contml prompts for custom file names
-touch outfile
-touch outtree
-
-#ensure that there is no 'infile'. Will throw up error if already no infile.
-#rm infile
-
-echo "scjack jumble search preliminaries complete"
-
-#send in the command. Remove last `&`. #chatgpt
-
-#for i in {1..50}; do printf "script_scjack_540_TBE_$i.sh & %.0s"; done
-
-#run the script 50 times in parallel. The below line only executes two scripts. Add all the template scripts you want to run in parallel to this command:
-script_scjack_540_TBE_1.sh & script_scjack_540_TBE_2.sh 
-
-
-exit
-
-```
 This produced 500 outtrees and outfiles representing a scjackknife tree inferred from each resampled 54 cell matrix.
 
 # Process output files
@@ -272,6 +147,7 @@ rm -r $(<errored_runs.txt)
 ```
 Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis.
 
+The processed outtree folder 
 # Calculate the scjack scores
 
 ## Prepare input files for Booster.
