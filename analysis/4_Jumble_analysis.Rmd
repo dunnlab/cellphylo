@@ -23,7 +23,7 @@ This workflow calculates jumble trees, removes errored files, and then calculate
 
 ## Create infile for jumble tree
 
-The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C3). See `2_Create_Matrices.Rmd`.  
+The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C1.2). See `2_Create_Matrices.Rmd`.  
 
 ```{r}
 
@@ -43,7 +43,7 @@ file.rename("infile", "tree_inference/54_cell_tree/infile")
 
 ## Infer jumble trees from contml runs
 
-The bash script `scripts/script_jumble_parallel_54.sh` was used to calculate jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis.
+The bash script `scripts/jumble/script_jumble_parallel_54.sh` was used to infer jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis.
 
 The `contml` settings:
   C: continuous characters
@@ -52,9 +52,8 @@ The `contml` settings:
     Number of times to jumble: 100
   G: Global rearrangements
   
-The infile is the infile created above from the 54 cell 20 PC matrix.
+Infer the jumble trees from the infile for the 54 cell 20 PC matrix (Fig. S1, step C1.2)
 
-Save output.
 
 ## Remove missing/errored files
 Some Jumble runs may error and produce no tree. We must remove those files.
@@ -64,11 +63,12 @@ Delete any empty tree files using the bash command.
 find ./ -size 0 -print -delete
 ```
 
+*The processed output trees have been provided as `jumble/output/outtrees_54_jumble_search_processed.tar.gz`*
+
 ## Calculate jumble scores and identify the best-scoring jumble tree
 
 ### Identify best jumble tree
-The output trees have been provided as `jumble/output/outtrees_54_jumble_search_processed.tar.gz`
-`
+
 ```{r id-best-jumble-tree}
 
 if(!dir.exists("jumble")){
@@ -180,5 +180,5 @@ min <- min(colsums) #0.2320657
 
 ```
 
-The tree with the minimum *unrounded* Kuhner-Felsenstein distance with all other "best trees" is outtree_54_jumble_search_1249177875.tre.  Thus, this tree and its jumble scores was chosen to provide the topology of the tree in Figure 4.  
+The tree with the minimum *unrounded* Kuhner-Felsenstein distance with all other "best trees" is outtree_54_jumble_search_1249177875.tre. Thus, this tree and its jumble scores was chosen to provide the topology of the tree in Figure 4. *We provide this tree at `analysis/jumble/output/outtree_54_jumble_search_1249177875.tre`.*
 

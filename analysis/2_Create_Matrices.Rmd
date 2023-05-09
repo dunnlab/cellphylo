@@ -72,7 +72,7 @@ To make later analyses computationally feasible, we randomly subset each species
 
 ```{r count-replicates}
 
-#"within-species" is the directory of matrices to quantify cell type group replicates
+#"within-species" is the directory of matrices to quantify cell type group replicates. It expects matrices in 10x feature-barcode format and cell ids in cellphylo format.
 count_replicates("matrix/within-species")
 
 ```
@@ -82,6 +82,7 @@ We determine that the cell type group with the smallest number of replicates are
 ### Subset the matrices 
 
 For each species, randomly subset the full matrix to 10 cells per cell type group.  
+
 ```{r subset-cells} 
 #human
 subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_human", n_reps = 10, print=TRUE)
@@ -96,8 +97,7 @@ subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pears
 
 ```
 
-
-**To make the analyses reproducible, we have provided the subsetted matrices we used in `analysis/matrix/subset`.**
+*To make the analyses reproducible, we have provided the subsetted matrices we used in `analysis/matrix/subset`*
 
 # Cross-species Analysis
 The cross-species analysis is performed on a combined matrix of all five species (Fig. S1, steps 5-7).
@@ -176,15 +176,18 @@ p2
 p3 <- DimPlot(cross_species_int, reduction = "umap", group.by = "cell_type_id", split.by = "species_id")
 p3
 ```
-This produces the matrix `mtrix/cross-species_integration/aqhumor_cross_species_integrated_mtx"` and also an R object `cross_species_integrated.rds` that is the Seurat object created by this workflow.
+This produces the matrix `matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx"` and also an R object `cross_species_integrated.rds` that is the Seurat object created by this workflow.
 
+*To facilitate reproducibilty, we have provided this matrix in `matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx`*
 
 # Create matricecs for tree inference  
 
-## Create 92 cell matrix (Fig. S1, step C2)
+## Create 92 cell matrix (Fig. S1, step C1.1)
 Preliminary `contml` runs were performed on a 92 cell 20 PC matrix (Fig. S1, step C2), which contains 1 cell per cell type group per species. All cell type groups (92) were retained. 
 
-Because sampling is random, we have provided the 92 cell matrix and list of sampled cells we used in our analysis:`tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/`. However, if you'd like to create a new 92 cell matrix use the below code:
+*Because sampling is random, we have provided the 92 cell matrix and list of sampled cells we used in our analysis:`tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/`*.
+
+However, if you'd like to create a new 92 cell matrix use the below code:
 
 ```{r create-92cell-mat}
 #deposit matrix in folder
@@ -211,12 +214,11 @@ file.rename("contml_92cell_subset_pca_var_norm_20PC_mtx", "tree_inference/92_cel
 
 ```
 
-## Create 54 cell matrix (Fig. S1, step C3)
-We further subsetted the 92 cell matrix (Fig. S1, step C2) to 54 cells (Fig. S1, step C3).
+## Create 54 cell matrix (Fig. S1, step C1.2)
+We further subsetted the 92 cell matrix (Fig. S1, step C1.1) to 54 cells (Fig. S1, step C1.2).
 
-The following script intakes the 92 cell 20 PC matrix (Fig. S1, step x) and remove cell type groups that either: 1) consistently failed to form clades and disrupted other cell type clades, or 2) existed only in a single species. 
+The following script intakes the 92 cell 20 PC matrix (Fig. S1, step C1.1) and remove cell type groups that either: 1) consistently failed to form clades and disrupted other cell type clades, or 2) existed only in a single species. 
 
-We provide the 92 cell 20 PC matrix as ``tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/` to facilitate reproducibility.
 
 ```{r create-54cell-mat}
 
@@ -247,6 +249,8 @@ if(!dir.exists("tree_inference/54_cell_tree")){
 file.rename("contml_54cell_subset_pca_var_norm_20PC_mtx", "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx")
 
 ```
+
+*We have provided the matrix in tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx`*.
 
 This is the matrix used to create the tree in Figure 4. 
 

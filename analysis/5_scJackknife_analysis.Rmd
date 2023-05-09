@@ -25,21 +25,18 @@ This workflow creates scjackknife matrices, infers a scjackknife tree from each,
 
 #Create the matrices we will sample from
 
-## Create 919 cell 20 PC matrix (Fig. S1, step C1)
+## Create 919 cell 20 PC matrix
 
 ```{r run-pca-20pc}
 pca_matrix <- run_pca(matrix_path="matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", n_PCs=20, print=TRUE)
 ```
 
-We have provided this matrix in `scjackknife/contml_919cell_subset_20PC_mtx`. 
 
-The above code produces a matrix where all.equal=TRUE with the provided matrix, but it is possible that machine-specific rounding errors may lead to identical()=FALSE.
+*To facilitate reproducibility, we have provided this matrix in `scjackknife/contml_919cell_subset_20PC_mtx`.*
 
 
-## Create 540 cell matrix (Fig. S1, step C4)
-This matrix is used for the single cell jackknife analysis that produced the scjackknife scores in Fig. 4.
-
-We create it by removing unstable cells and singletons from the 919 cell cross-species integrated matrix. This leaves 54 cell type groups, each with 10 cells each. We only sample the cell labels from this matrix, not the values.
+## Create 540 cell matrix to draw cell labels from (Fig. S1, step C2.2)
+We create it by removing unstable cells and singletons from the 919 cell cross-species integrated matrix. This leaves 54 cell type groups, each with 10 cells each. We only sample the cell labels from this matrix, not the values, and the cell labels we sample from this matrix will be used to subset the 919 cell 20 PC matrix that was created above.
 
 ```{r create-540cell-mat}
 
@@ -60,7 +57,7 @@ write10xCounts("matrix_540cell_cross_species_integrated_mtx", mat_filt, version=
 file.rename("matrix_540cell_cross_species_integrated_mtx", "scjackknife/matrix_540cell_cross_species_integrated_mtx")
 ```
 
-
+*We provide this matrix in `scjackknife/matrix_540cell_cross_species_integrated_mtx`*.
 
 # Make scjack samples
 To create each replicate 54 cell scjack matrix, we will repeatably sample 1 cell per cell type group per species, for the 54 cell type groups we used to create the phylogeny in Figure 4. We will use a 540 cell matrix (10 cells per cell type group, 54 cell type groups) to draw cell labels from. Because PCA must be performed on the full 919 cell matrix, we will create a 919 cell 20 PC matrix (Fig. S1, step C1) and pull out the values corresponding to the cell labels we obtained from subsampling the 450 cell matrix. 
@@ -71,7 +68,7 @@ We do this 500 times to create 500 resampled 54 cell matrices. Each matrix is tr
 
 This function will print out the 54 cell subsampled matrices as 10x feature-barcode matrices, infiles, and the list of cell ids present in each matrix.
 
-Since the scjackknife matrices are random, we have included the input as `scjackknife/input_scjack_540_TBE.tar.gz`
+*Since the scjackknife matrices are random, we have included the input we used as `scjackknife/input_scjack_540_TBE.tar.gz`*
 
 ```{r create-scjack-sample}
 
@@ -99,17 +96,17 @@ We ran this on a hpc cluster using 64 vCPUs and running 50 `contml` commands in 
 
 Each scjack `contml` run requires its own bash script. We created and executed 500 bash scripts using the following workflow:
 
-1. We created a template for the script that is executed for each contml run. This has been provided as `analysis/scripts/in_script_scjack_parallel_540_TBE.sh`
+1. We created a template for the script that is executed for each contml run. This has been provided as `analysis/scripts/scjackknife/in_script_scjack_parallel_540_TBE.sh`
 
-2. We made 500 copies of the template script. The script for this is provided as `analysis/scripts/make_reps_scjack_540_TBE.sh`.
+2. We made 500 copies of the template script. The script for this is provided as `analysis/scripts/scjackknife/make_reps_scjack_540_TBE.sh`.
 
-3. Execute each scjackknife script in parallel. The script for this is `analysis/scripts/run_scjack_parallel_540_TBE.sh`.
+3. Execute each scjackknife script in parallel. The script for this is `analysis/scripts/scjackknife/run_scjack_parallel_540_TBE.sh`.
 
-We have included the scripts in `scjackknife/input_scjack_540_TBE/scjack_scripts.tar.gz` for reproducibility.
+*We have included the resulting scripts in `scripts/scjackknife/scjack_scripts.tar.gz`*
 
-Now execute the scjackknife analysis on a cluster using the provided bash script `scripts/run_scjack_parallel_540_TBE.sh`.
+Now execute the scjackknife analysis on a cluster using the provided bash script `scripts/scjackknife/run_scjack_parallel_540_TBE.sh`.
 
-This produced 500 outtrees representing a scjackknife tree inferred from each resampled 54 cell matrix. These trees have been provided as `analysis/scjackknife/output/raw/outtrees_scjack_540_TBE`
+This produced 500 outtrees representing a scjackknife tree inferred from each resampled 54 cell matrix.
 
 # Process output files
 Some `contml` runs may have errored out, producing empty `outtree` files. Remove these files
@@ -121,7 +118,7 @@ find ./ -size 0 -print -delete
 
 There are 439 scjackknife trees remaining.
 
-Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. This directory has been provided as `output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_processed`.
+Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. *This directory has been provided as `scjackknife/output/output_processed/outtrees_scjack_540_TBE_processed`.*
 
 Removing files causes the index between the scjack matrices and `outtree` and matrix files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
 
@@ -139,7 +136,8 @@ cd analysis/scjackknife/input_scjack_540_TBE/scjack_matrices
 rm -r $(<errored_runs.txt)
 
 ```
-Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. This has been provided as `scjackknife/output/output_scjack_540_TBE_processed/scjack_matrices_processed`
+
+Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. *This has been provided as `scjackknife/output/output_scjack_540_TBE_processed/scjack_matrices_processed`*
 
 # Prepare input files for Booster.
 
@@ -150,17 +148,16 @@ scjackknife trees must share common labels in order to calculate the TBE. Label 
 ```{r prep-scjack-boost}
 
 n_trees =439
-matrix_dir_path = "scjackknife/output/output_scjack_540_TBE_processed/scjack_matrices_processed/"
-tree_dir_path = "scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_processed/"
+matrix_dir_path = "scjackknife/output/output_processed/scjack_matrices_processed/"
+tree_dir_path = "scjackknife/output/output_processed/outtrees_scjack_540_TBE_processed/"
 file_name_prefix = "outtrees_scjack_540_TBE"
 
 labelled_trees <- label_scjack_trees(n_trees = n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path, print=TRUE, file_name_prefix=file_name_prefix)
 
 ```
 
-These labelled trees are provided in:
-`scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_common_label`
-`scjackknife/output/output_scjack_540_TBE_processed/outtrees_scjack_540_TBE_label`
+The trees that have been labelled with common labels have been provided in 
+*`scjackknife/output/output_rocessed/outtrees_scjack_540_TBE_common_label`*
 
 ## Add common labels to focal tree
 
@@ -186,6 +183,8 @@ write.tree(common_labels_tree, file="outtree_54_jumble_search_1249177875_common_
 
 ```
 
+*To facilitate reproducibility, this tree has been provided in `scjackknife/booster/outtree_54_jumble_search_1249177875_common_label.tre`*
+
 #Combine common label scjackknife trees in a single multiphylo file
 ```{r boost-files}
 
@@ -197,10 +196,13 @@ write.tree(multi_trees, file="multiphylo_scjack_540_TBE_common_label.tre")
     
 ```
 
+*To facilitate reproducibility, this multi tree file has been provided in `scjackknife/booster/multiphylo_scjack_540_TBE_common_label.tre`*
+
 ## Run booster to calculate TBE scores
 ```
 ./booster/booster_macos64 -i outtree_54_jumble_search_1249177875_common_label.tre -b multiphylo_scjack_540_TBE_common_label.tre  > outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre
 ```
 
-This produces a tree, `outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre`, with TBE scores plotted at nodes. These TBE scores were used in Fig. 4 as the scjackknife scores.
+This produces a tree, `outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre`, with TBE scores plotted at nodes. These TBE scores were used in Fig. 4 as the scjackknife scores. *This tree is provided in `scjackknife/booster/outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre`*.
+
 
