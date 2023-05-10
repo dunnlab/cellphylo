@@ -18,6 +18,92 @@ Several files have been provided in the `analysis` directory to help with reprod
 
 A brief description of folders of `analysis`:  
 
+```bash
+analysis
+├── PC_sweep
+│   ├── input
+│   │   └── pc_sweep_infiles_final.tar.gz
+│   └── output
+│       └── pc_sweep_919_outtrees.tar.gz
+├── ann  *Annotation files*   
+│   ├── AqHumor_ensembl_orthologs.txt
+│   └── all_five_species_metafile.csv
+├── jumble
+│   └── output
+│       ├── outtree_54_jumble_search_1249177875.tre
+│       └── outtrees_54_jumble_search_processed.tar.gz
+├── matrix
+│   ├── cross-species_integration
+│   │   ├── aqhumor_cross_species_92_subset.txt
+│   │   └── aqhumor_cross_species_integrated_mtx
+│   │       ├── barcodes.tsv.gz
+│   │       ├── features.tsv.gz
+│   │       └── matrix.mtx.gz
+│   └── subset
+│       ├── integrated_subset_mtx_human
+│       │   ├── barcodes.tsv.gz
+│       │   ├── features.tsv.gz
+│       │   └── matrix.mtx.gz
+│       ├── integrated_subset_mtx_macF
+│       │   ├── barcodes.tsv.gz
+│       │   ├── features.tsv.gz
+│       │   └── matrix.mtx.gz
+│       ├── integrated_subset_mtx_macM
+│       │   ├── barcodes.tsv.gz
+│       │   ├── features.tsv.gz
+│       │   └── matrix.mtx.gz
+│       ├── integrated_subset_mtx_mouse
+│       │   ├── barcodes.tsv.gz
+│       │   ├── features.tsv.gz
+│       │   └── matrix.mtx.gz
+│       └── integrated_subset_mtx_pig
+│           ├── barcodes.tsv.gz
+│           ├── features.tsv.gz
+│           └── matrix.mtx.gz
+├── scjackknife
+│   ├── booster
+│   │   ├── multiphylo_scjack_540_TBE_common_label.tre
+│   │   ├── outtree_54_jumble_search_1249177875_common_label.tre
+│   │   └── outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre
+│   ├── contml_919cell_subset_20PC_mtx
+│   │   ├── barcodes.tsv.gz
+│   │   ├── features.tsv.gz
+│   │   └── matrix.mtx.gz
+│   ├── input
+│   │   └── input_scjack_540_TBE.tar.gz
+│   ├── matrix_540cell_cross_species_integrated_mtx
+│   │   ├── barcodes.tsv.gz
+│   │   ├── features.tsv.gz
+│   │   └── matrix.mtx.gz
+│   └── output
+│       └── output_processed
+│           ├── outtrees_scjack_540_TBE_common_label.tar.gz
+│           ├── outtrees_scjack_540_TBE_processed.tar.gz
+│           └── scjack_matrices_processed.tar.gz
+├── scripts
+│   ├── PC_sweep
+│   │   └── contml_pc_sweep_919.sh
+│   ├── jumble
+│   │   ├── run_jumble_parallel_54.sh
+│   │   └── script_jumble_parallel_54.sh
+│   └── scjackknife
+│       ├── in_script_scjack_parallel_540_TBE.sh
+│       ├── make_reps_scjack_540_TBE.sh
+│       ├── run_scjack_parallel_540_TBE.sh
+│       └── scjack_scripts.tar.gz
+└── tree_inference
+    ├── 54_cell_tree
+    │   └── contml_54cell_subset_pca_var_norm_20PC_mtx
+    │       ├── barcodes.tsv.gz
+    │       ├── features.tsv.gz
+    │       └── matrix.mtx.gz
+    └── 92_cell_tree
+        ├── aqhumor_cross_species_92_subset.txt
+        └── contml_92cell_subset_pca_var_norm_20PC_mtx
+            ├── barcodes.tsv.gz
+            ├── features.tsv.gz
+            └── matrix.mtx.gz
+```
 analysis/  
 | 	ann/	Annotation files  
 |	jumble/  Output files for the jumble analysis  
