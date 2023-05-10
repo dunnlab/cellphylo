@@ -25,10 +25,10 @@ analysis
 │   │   └── pc_sweep_infiles_final.tar.gz
 │   └── output
 │       └── pc_sweep_919_outtrees.tar.gz
-├── ann	*Annotation files*   
+├── ann: Annotation files     
 │   ├── AqHumor_ensembl_orthologs.txt
 │   └── all_five_species_metafile.csv
-├── jumble	*Output files for the jumble analysis*
+├── jumble: Output files for the jumble analysis
 │   └── output
 │       ├── outtree_54_jumble_search_1249177875.tre
 │       └── outtrees_54_jumble_search_processed.tar.gz
