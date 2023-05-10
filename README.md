@@ -1,6 +1,6 @@
 # cellphylo
 
-This repo contains code meant to facilitate reproduction of the analyses in Mah & Dunn (2023).  
+This repo contains code meant to facilitate reproduction of the analyses in Mah & Dunn (2023), *Cell phylogenies constructed from single cell expression data sampled across species*.   
 
 # Replicate analyses
 First run the file containing all functions used in the analyses: `cellphylo_functions.R`. SessionInfo can be found in `sessionInfo_R.txt`.  
@@ -39,7 +39,7 @@ analysis
 │   │       ├── barcodes.tsv.gz
 │   │       ├── features.tsv.gz
 │   │       └── matrix.mtx.gz
-│   └── subset: Subsetted matrives for each species (Fig. S1, step 4)
+│   └── subset: Subsetted matrices for each species (Fig. S1, step 4)
 │       ├── integrated_subset_mtx_human
 │       │   ├── barcodes.tsv.gz
 │       │   ├── features.tsv.gz
