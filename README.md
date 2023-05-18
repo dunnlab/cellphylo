@@ -1,6 +1,6 @@
 # cellphylo
 
-This repo contains code meant to facilitate reproduction of the analyses in Mah & Dunn (2023), *Cell phylogenies constructed from single cell expression data sampled across species*.   
+This repo contains code meant to facilitate reproduction of the analyses in Mah & Dunn (2023), *Reconstructing cell type evolution across species through cell phylogenies of single-cell RNAseq data*.   
 
 # Replicate analyses
 First run the file containing all functions used in the analyses: `cellphylo_functions.R`. SessionInfo can be found in `sessionInfo_R.txt`.  
@@ -105,6 +105,10 @@ analysis
             └── matrix.mtx.gz
 ```
 
+# Supplementary Files  
+Additional supplementary files referenced in the text are provided in `supplementary_files/Mah&Dunn2023_SuppFiles_18May2023.tar.gz`.    
 
-# Citation  
+# Citations   
+Mah, J.L., and Dunn, C.W. Reconstructing cell type evolution across species through cell phylogenies of single-cell RNAseq data. TBD. (2023)  
+
 Lemoine, F. et al. Renewing Felsenstein’s phylogenetic bootstrap in the era of big data. Nature 556, 452–456 (2018).
