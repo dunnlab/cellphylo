@@ -101,11 +101,15 @@ write10xCounts("contml_54means_20PC_afterPCA_mtx", means_mat.sparse, version="3"
 
 ```
 
+## Create infile for contml
+```{r}
+make_infile(matrix_path = "contml_54means_20PC_afterPCA_mtx", print=TRUE)
+```
 
 ## Infer Jumble trees using contml
 Infer the jumble trees from the infile for the 53 averaged-cell 20 PC matrix (Fig. S1, step D1.2) (ie from `contml_53mean_pca_var_norm_20PC_afterPCA_mtx`).
 
-The bash script `analysis/scripts/average/jumble/script_jumble_parallel_53mean_20PC_afterPCA.sh` was used to run contml. The script `analysis/scripts/average/jumble/run_jumble_parallel_53mean_20PC_afterPCA.sh` was used to run that script in parallel on a hpc cluster.
+The bash script `script_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run contml. The script `run_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run that script in parallel on a hpc cluster. *These scripts are provided in `analysis/scripts/average/jumble/`.*
 
 The `contml` settings:
   C: continuous characters
@@ -120,55 +124,89 @@ Delete any empty tree files using the bash command.
 ```
 find ./ -size 0 -print -delete
 ```
-This leaves 156 trees.
->>>>> *The processed outtree files have been provided in `average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed.tar.gz`.*
+This leaves 209 trees.
+
+The processed outtree files have been provided in *`average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed.tar.gz`*.
 
 ## Identify best jumble tree
 ```{r}
 library(phangorn)
 
-tree_dir_path = "average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed"
+tree_dir_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed"
 
 #find jumble tree with highest sum of scores
 best_jumble_tree(tree_dir_path = tree_dir_path)
 list.files(tree_dir_path)
 
 ```
-7 trees are tied:
-[1] "outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre"
-[2] "outtree_53mean_20PC_afterPCA_jumble_search_1782827219.tre"
-[3] "outtree_53mean_20PC_afterPCA_jumble_search_2207028813.tre"
-[4] "outtree_53mean_20PC_afterPCA_jumble_search_2680760603.tre"
-[5] "outtree_53mean_20PC_afterPCA_jumble_search_3358222241.tre"
-[6] "outtree_53mean_20PC_afterPCA_jumble_search_566689431.tre" 
-[7] "outtree_53mean_20PC_afterPCA_jumble_search_893786863.tre" 
 
-Choose the "best" best jumble tree that is most repesentative topologically of the 7 "best" jumble trees. We calculated Robinson-Foulds, path distance, and Kuhner-Felsenstein distance (see `4_Jumble_analysis.Rmd`). All 7 trees had distances of zero for Robinson-Foulds and path distance. Two trees tied for smallest Kuhner-Felsenstein distance:
- outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre
- outtree_53mean_20PC_afterPCA_jumble_search_2207028813.tre
-They are identical to each other (KF distance=0)
-The tree file `outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre` was selected for downstream use.
+5 trees are tied for highest sum of scores.
+outtree_54mean_20PC_afterPCA_jumble_search_1687210069.tre
+outtree_54mean_20PC_afterPCA_jumble_search_1910156897.tre
+outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre
+outtree_54mean_20PC_afterPCA_jumble_search_2741266717.tre
+outtree_54mean_20PC_afterPCA_jumble_search_3594350545.tre
+
+Choose the "best" best jumble tree that is most repesentative topologically of the 5 "best" jumble trees. We calculated Robinson-Foulds, path distance, and Kuhner-Felsenstein distance.
+
+
+```{r}
+library(phangorn)
+
+#create a multiphylo of best trees
+tree_dir_path <- "average/jumble/output/best_trees/"
+multiphylo <- combine_multi_trees(tree_dir_path)
+
+#make a distance matrix. See phangorn::treedist for description of distance metrics.
+#using Robinson-Foulds distance
+RF_dist_mtx <- RF.dist(multiphylo) 
+RF_dist_mat <- as.matrix(RF_dist_mtx)
+colsums <- colSums(RF_dist_mat)
+min <- min(colsums)
+RF_dist_mat[,which(colSums(RF_dist_mat) == min)] #all 0
+
+#using path distance
+path_dist_mtx <- path.dist(multiphylo) 
+path_dist_mat <- as.matrix(path_dist_mtx)
+colsums <- colSums(path_dist_mat)
+min <- min(colsums)
+path_dist_mat[,which(colSums(path_dist_mat) == min)] # all 0
+
+#using Kuhner & Felsenstein (1994) distance.
+KF_dist_mtx <- KF.dist(multiphylo) 
+KF_dist_mat <- as.matrix(KF_dist_mtx)
+colsums <- colSums(KF_dist_mat)
+min <- min(colsums)
+KF_dist_mat[,which(colSums(KF_dist_mat) == min)] # tree 3 has shortest distance
+
+
+list.files(tree_dir_path)
+
+```
+
+The most representative, highest-scoring jumble tree is: `outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre`. It was selected as the focal phylogeny for Figure 5.
+
 
 Score and label best jumble tree:
 ```{r}
 #make multiphylo object of jumble trees
-tree_dir_path = "average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed"
+tree_dir_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/"
 multiphylo <- combine_multi_trees(tree_dir_path)
 
 #focal tree (tree to plot jumble scores)
-focal_tree_path = "average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed/outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre"
+focal_tree_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre"
 
 tree <- score_jumble(multiphylo = multiphylo, focal_tree_path = focal_tree_path, print=TRUE)
 
 #label tree
-mat_path <- "average/matrix/contml_53mean_pca_var_norm_20PC_afterPCA_mtx"
+mat_path <- "contml_54means_20PC_afterPCA_mtx/"
 tree_path <- "scored_tree.tre"
-file_name <- "jumble_53mean_20PC_afterPCA_best_1166074061_scored_label.tre"
+file_name <- "54mean_20PC_afterPCA_jumble_search_2525674179_scored_label.tre"
 label_tree(mat_path, tree_path, file_name, print=TRUE)
 
 ```
 
-*The file `jumble_53mean_20PC_afterPCA_best_1166074061_scored_label.tre` was used as the focal tree in Figure 5. It is provided in `average/jumble/output/`.*
+*The file `54mean_20PC_afterPCA_jumble_search_2525674179_scored_label.tre` was used as the focal tree in Figure 5. It is provided in `average/jumble/output/`.*
 
 
 # Calculate scJackknife scores
@@ -277,14 +315,13 @@ The trees that have been labelled with common labels have been provided in
 *`average/scjackknife/output/output_processed/outtree_scjack_means_5reps_540_common_label.tar.gz`*
 
 ### Add common labels to best Jumble tree
->>> PAUSED HERE TO PURSUE JUMBLE RUN <<<
-We will plot scjack TBE values onto the best Jumble tree. It must share common labels with the scjackknife trees.
 
 ```{r}
 
-tree <- read.tree("~/repo/aqhumor/AqHum_5Species/aqhumor_final/average/trees_ave/jumble/53mean_20PC_afterPCA/best_tree/RF_best_trees/outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre")
+tree <- read.tree("average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre")
 
-labelled_tree <- label_tree(matrix_path = "matrix_ave/pca/mean_after_PCA/contml_53mean_pca_var_norm_20PC_afterPCA_mtx/", tree_path = "trees_ave/jumble/53mean_20PC_afterPCA/best_tree/RF_best_trees/outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre", file_name = "outtree_53mean_20PC_afterPCA_jumble_search_116607406_label.tre", print=FALSE)
+labelled_tree <- label_tree(matrix_path = "../../aqhumor/AqHum_5Species/aqhumor_final/average/trees_ave/jumble/54_mean/54mean_20PC_afterPCA/contml_54means_20PC_afterPCA_mtx/", tree_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre", file_name = "outtree_54mean_20PC_afterPCA_jumble_search_2525674179_label.tre", print=FALSE)
+
 
 #make new labels - code stolen from scjack label
 species <- sapply(strsplit(labelled_tree$tip.label, "_"), function(v){return(v[1])})
@@ -293,31 +330,30 @@ new_label <- paste0(species, "_", cluster_id)
 common_labels_tree <- labelled_tree
 common_labels_tree$tip.label <- new_label
 #print out common labels tree
-write.tree(common_labels_tree, file="outtree_53mean_20PC_afterPCA_jumble_search_116607406_common_label.tre")
+write.tree(common_labels_tree, file="outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label.tre")
 
 ```
 
->>>>>*To facilitate reproducibility, this tree has been provided in `xxx`*
->>> CODE: CHANGE PATHS
+To facilitate reproduction, this tree has been provided in *`average/booster/outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label.tre`*
+
 
 ### Combine scJackknife trees into a multiphylo .tre file for Booster
 
 ```{r boost-files}
 
 #combine and print out as a single tree file
-multi_trees <- combine_multi_trees("trees_ave/scjack/after_PCA/output_scjack_means_5reps_530_processed/outtree_scjack_means_5reps_530_common_label/")
+multi_trees <- combine_multi_trees("average/scjackknife/output/output_processed/outtree_scjack_means_5reps_540_common_label")
 
-write.tree(multi_trees, file="multiphylo_scjack_means_5reps_530_common_label.tre")
+write.tree(multi_trees, file="multiphylo_scjack_means_5reps_540_common_label.tre")
 
 ```
-
->>> CODE: CHANGE PATHS
+To facilitate reproduction, this multiphylo tree file has been provided in *`average/booster/multiphylo_scjack_means_5reps_540_common_label.tre`*
 
 ## Run booster
 
 ```
-~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/booster/booster_macos64  -i outtree_53mean_20PC_afterPCA_jumble_search_116607406_common_label.tre -b  multiphylo_scjack_means_5reps_530_common_label.tre  > outtree_53mean_20PC_afterPCA_jumble_search_116607406_common_label_best_tree_TBE.tre
+./booster_macos64  -i outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label.tre -b multiphylo_scjack_means_5reps_540_common_label.tre > outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label_best_tree_TBE.tre
 ```
 
->>>>> CHANGE AND PROVIDE FILE: This produces a tree, `outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre`, with TBE scores plotted at nodes. These TBE scores were used in Fig. 4 as the scjackknife scores. *This tree is provided in 'xxx`*.
+This produces a tree, `outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label_best_tree_TBE.tre`, with TBE scores plotted at nodes. These TBE scores were used in Figure 5 as the scjackknife scores. *This tree is provided in 'average/booster`*.
 
