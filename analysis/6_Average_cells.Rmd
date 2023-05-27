@@ -118,7 +118,7 @@ make_infile(matrix = mat_filt, print=TRUE)
 
 >>>>> *We provide `contml_53mean_pca_var_norm_20PC_afterPCA_mtx` in average/matrix*
 
-## Perform a Jumble search analysis
+## Infer Jumble trees using contml
 Infer the jumble trees from the infile for the 53 averaged-cell 20 PC matrix (Fig. S1, step D1.2) (ie from `contml_53mean_pca_var_norm_20PC_afterPCA_mtx`).
 
 The bash script `analysis/scripts/average/script_jumble_parallel_53mean_20PC_afterPCA.sh` was used to run contml. The script `analysis/scripts/average/srun_jumble_parallel_53mean_20PC_afterPCA.sh` was used to run that script in parallel on a hpc cluster.
@@ -159,36 +159,11 @@ list.files(tree_dir_path)
 [6] "outtree_53mean_20PC_afterPCA_jumble_search_566689431.tre" 
 [7] "outtree_53mean_20PC_afterPCA_jumble_search_893786863.tre" 
 
-Choose the "best" best jumble tree that is most repesentative topologically of the 7 "best" jumble trees.
-```{r}
-#create a multiphylo of best trees
-best_tree_dir_path <- "average/output/best_trees"
-multiphylo <- combine_multi_trees(best_tree_dir_path)
-list.files(best_tree_dir_path)
-
-#all best trees tied
-RF_dist_mtx <- RF.dist(multiphylo) 
-RF_dist_mat <- as.matrix(RF_dist_mtx)
-colsums <- colSums(RF_dist_mat)
-min <- min(colsums)
-RF_dist_mat[,which(colSums(RF_dist_mat) == min)] 
-
-#all best trees tied
-path_dist_mtx <- path.dist(multiphylo) 
-path_dist_mat <- as.matrix(path_dist_mtx)
-colsums <- colSums(path_dist_mat)
-min <- min(colsums)
-path_dist_mat[,which(colSums(path_dist_mat) == min)] 
-
-#2 trees tied. They have a KF dist = 0 between each other - they are identical.
-KF_dist_mtx <- KF.dist(multiphylo) 
-KF_dist_mat <- as.matrix(KF_dist_mtx)
-colsums <- colSums(KF_dist_mat)
-min <- min(colsums)
-KF_dist_mat[,which(colSums(KF_dist_mat) == min)] 
-```
-
-Trees [1] "outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre" and [3] "outtree_53mean_20PC_afterPCA_jumble_search_2207028813.tre" are tied. They are identical to each other. 
+Choose the "best" best jumble tree that is most repesentative topologically of the 7 "best" jumble trees. We calculated Robinson-Foulds, path distance, and Kuhner-Felsenstein distance (see `4_Jumble_analysis.Rmd`). All 7 trees had distances of zero for Robinson-Foulds and path distance. Two trees tied for smallest Kuhner-Felsenstein distance:
+ outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre
+ outtree_53mean_20PC_afterPCA_jumble_search_2207028813.tre
+They are identical to each other (KF distance=0)
+The tree file `outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre` was selected for downstream use.
 
 Score and label best jumble tree:
 ```{r}
@@ -208,16 +183,184 @@ file_name <- "jumble_53mean_20PC_afterPCA_best_1166074061_scored_label.tre"
 label_tree(mat_path, tree_path, file_name, print=TRUE)
 
 ```
+
 *The file `jumble_53mean_20PC_afterPCA_best_1166074061_scored_label.tre` was used as the focal tree in Figure 5. It is provided in `average/jumble/output/`.*
 
 
-=
-
-
-
-
-
-
-
-
 # Calculate scJackknife scores
+To perform the scJackknife analysis, we take the 919 cell 20 PC matrix (Fig. S1, step C2.1), which has ~10 cells per cell type group (92 cell type groups) and randomly sample and average 5 of those 10 cells for each cell type group.
+
+## Make scJackknife input files
+### Create a list of cells to draw from
+
+Create a list of cells to sample cell ids from. The 919 cell matrix has all 92 cell type groups. As in Figure 4, we remove unstable or singleton cell types, leaving 530 cells representing 53 cell type groups. In this case, we restrict sampled cell ids to the 540 cells from 54 cell type groups (the same cell type groups used in Figure 4). 
+
+```{r permissible_cells}
+library(Seurat)
+
+#identical=TRUE to original average 919 cell 20 PC matrix
+mat <- Read10X("scjackknife/contml_919cell_subset_20PC_mtx/")
+
+#54 cell type groups
+black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal" , "Endo", "Epi-CiliaryNonPigment","Epi-CiliaryPigment" , "Epi-Pigment" , "MastCell" ,  "Myoepithelium" , "Neuron" ,  "SchwalbeLine", "Uveal", "Vascular", "Fibroblast", "Epi-Corneal", "Beam-X", "Beam-A", "BCell")
+
+cell_ids <- rownames(mat)
+cell_type_ids <- sapply(strsplit(cell_ids, "_"), function(v){return(v[4])})
+
+#filter matrix
+filter_index <- which(!(cell_type_ids %in% black_list))
+mat_filt <- mat[filter_index,]
+permissible_cells <- rownames(mat_filt)
+
+#print out the file for later use
+write.table(permissible_cells, file="540_cell_subset_cell_ids.txt", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+### Make scjack samples
+As in the scJackknife tutorial (`5_scJackknife_analysis.Rmd`), we create scjack samples by randomly sampling 5 cells per cell type group from the 919 cell 20 PC matrix (Fig. S1, step C1.1), limiting our cell type groups to the 54 described above. 
+
+The below code creates  `contml` infiles, matrices, and a list of cells that were sampled to make the averaged matrices.
+
+```{r}
+
+#parameters
+n_samples = 500
+matrix_path = "scjackknife/contml_919cell_subset_20PC_mtx/"
+sample_size=5
+print=TRUE
+file_name = "540_cells_20PC_after_PCA"
+limit_cells <- read.table("average/matrix/540_cell_subset_cell_ids.txt")
+
+
+#run function
+make_scjack_sample_means(n_samples=n_samples, mat=matrix_path, sample_size=sample_size, limit_cells=limit_cells, file_name=file_name, print=print)
+
+```
+
+We produce 500 scjackknifed averaged matrices, the `contml` infiles representing these matrices, and a list of the 5 cells sampled for each cell type group for each matrix.
+
+### Create scripts to infer scjackknife trees with contml
+Use the infiles created above to run `contml`.
+
+`contml` was run using the same options as for the jumble trees:
+  C: continuous data
+  J: jumble, 100x with random seed
+
+1. We created a template for the script that is executed for each contml run. This has been provided as `in_script_scjack_parallel_means_5reps_540.sh`
+
+2. We made 500 copies of the template script. The script for this is provided as `make_reps_scjack_means_5reps_540.sh`.
+
+3. Execute each scjackknife script in parallel. The script for this is `run_scjack_parallel_means_5reps_540.sh`.
+infiles should be in a directory called `scjack_infiles`
+scripts should be present in the working directory (ie not in a directory)
+
+*We have included the three scripts described above in `scripts/average' and the scjackknife run scripts (the output of running the three above scripts) in `scripts/scjackknife/scjack_scripts.tar.gz`*
+
+Using these scripts to run `contml` produced 500 outtrees representing a scjackknife tree inferred from each 54 averaged cell matrix.
+
+>>>>>***CHANGE SCRIPTS. HAVE NOT DEPOSITED YET***
+>>>>*** Add raw outtrees dir? Did not include for scjackknife tutorial - PROBABLY NOT***
+
+## Process output files
+Some `contml` runs may have errored out, producing empty `outtree` files. Remove these files
+
+
+Delete any empty tree files
+```
+find ./ -size 0 -print -delete
+```
+151/500 trees survived.
+
+Fish out outfiles that have data in them:
+```
+find . -type f -print| xargs grep "Ln Likelihood"| cut -d ":" -f 1| xargs -I '{}' cp '{}' ../outfiles_57_jumble_search_2/
+```
+
+>>> ADD FILES TO CELLPHYLO:: Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. *This directory has been provided as XXX`.*
+
+Removing files causes the index between the scjack matrices and `outtree` and matrix files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
+
+Identify runs that errored:
+```{r}
+
+outtrees_dir = "trees_ave/scjack/after_PCA/output_scjack_means_5reps_540/outtrees_scjack_means_5reps_540/"
+matrix_name_pattern = "means_5_reps_540_cells_20PC_after_PCA"
+
+id_errored_runs_means(outtrees_dir = outtrees_dir, matrix_name_pattern = matrix_name_pattern)
+
+```
+>>> CHANGE PATH TO OUTTREES_DIR
+
+Remove corresponding matrices
+```
+cd trees_ave/scjack/after_PCA/input_scjack_means_5reps_530/scjack_matrices
+rm -r $(<errored_runs.txt)
+
+```
+>>> CHANGE
+
+>>>>>>Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. *This has been provided as `scjackknife/output/output_scjack_540_TBE_processed/scjack_matrices_processed`*
+
+
+## Prepare input files for Booster.
+
+### Add common labels to scjackknife trees
+scjackknife trees must share common labels in order to calculate the TBE. Label the scjackknife trees with their full cell ids and an abbreviated cell id that can be matched across scjackknife trees.
+
+```{r prep-scjack-boost}
+
+n_trees =151
+matrix_dir_path = "trees_ave/scjack/after_PCA/output_scjack_means_5reps_530_processed/scjack_matrices_processed/"
+tree_dir_path = "trees_ave/scjack/after_PCA/output_scjack_means_5reps_530_processed/outtrees_scjack_means_5reps_530_processed"
+file_name_prefix = "outtree_scjack_means_5reps_530"
+
+labelled_trees <- label_scjack_trees(n_trees = n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path, print=TRUE, file_name_prefix=file_name_prefix)
+
+```
+>>>>>The trees that have been labelled with common labels have been provided in 
+*`xxx`*
+
+### Add common labels to best Jumble tree
+
+We will plot scjack TBE values onto the best Jumble tree. It must share common labels with the scjackknife trees.
+```{r}
+
+tree <- read.tree("trees_ave/jumble/53mean_20PC_afterPCA/best_tree/RF_best_trees/outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre")
+
+labelled_tree <- label_tree(matrix_path = "matrix_ave/pca/mean_after_PCA/contml_53mean_pca_var_norm_20PC_afterPCA_mtx/", tree_path = "trees_ave/jumble/53mean_20PC_afterPCA/best_tree/RF_best_trees/outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre", file_name = "outtree_53mean_20PC_afterPCA_jumble_search_116607406_label.tre", print=FALSE)
+
+#make new labels - code stolen from scjack label
+species <- sapply(strsplit(labelled_tree$tip.label, "_"), function(v){return(v[1])})
+cluster_id <- sapply(strsplit(labelled_tree$tip.label, "_"), function(v){return(v[3])})
+new_label <- paste0(species, "_", cluster_id)
+common_labels_tree <- labelled_tree
+common_labels_tree$tip.label <- new_label
+#print out common labels tree
+write.tree(common_labels_tree, file="outtree_53mean_20PC_afterPCA_jumble_search_116607406_common_label.tre")
+
+```
+
+>>>>>*To facilitate reproducibility, this tree has been provided in `xxx`*
+>>> CODE: CHANGE PATHS
+
+### Combine scJackknife trees into a multiphylo .tre file for Booster
+
+```{r boost-files}
+
+#combine and print out as a single tree file
+multi_trees <- combine_multi_trees("trees_ave/scjack/after_PCA/output_scjack_means_5reps_530_processed/outtree_scjack_means_5reps_530_common_label/")
+
+write.tree(multi_trees, file="multiphylo_scjack_means_5reps_530_common_label.tre")
+
+```
+
+>>> CODE: CHANGE PATHS
+
+## Run booster
+
+```
+~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/booster/booster_macos64  -i outtree_53mean_20PC_afterPCA_jumble_search_116607406_common_label.tre -b  multiphylo_scjack_means_5reps_530_common_label.tre  > outtree_53mean_20PC_afterPCA_jumble_search_116607406_common_label_best_tree_TBE.tre
+```
+
+>>>>> CHANGE AND PROVIDE FILE: This produces a tree, `outtree_54_jumble_search_1249177875_scored_with_scjack540TBE.tre`, with TBE scores plotted at nodes. These TBE scores were used in Fig. 4 as the scjackknife scores. *This tree is provided in 'xxx`*.
+
