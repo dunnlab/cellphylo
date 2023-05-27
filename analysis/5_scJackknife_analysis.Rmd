@@ -104,8 +104,6 @@ Each scjack `contml` run requires its own bash script. We created and executed 5
 
 *We have included the resulting scripts in `scripts/scjackknife/scjack_scripts.tar.gz`*
 
-Now execute the scjackknife analysis on a cluster using the provided bash script `scripts/scjackknife/run_scjack_parallel_540_TBE.sh`.
-
 This produced 500 outtrees representing a scjackknife tree inferred from each resampled 54 cell matrix.
 
 # Process output files

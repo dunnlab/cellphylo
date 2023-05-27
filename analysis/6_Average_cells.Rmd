@@ -1,0 +1,223 @@
+---
+title: "average"
+---
+
+This notebook walks you through the steps to create Figure 5. This tree is inferred from averaged values - tips represent a set of averaged cells, rather than a single cell representative, for the cell type group.
+
+# Preliminaries
+```{r}
+setwd("~/repo/cellphylo/analysis")
+
+library(Seurat)
+library(tidyverse)
+library(DropletUtils)
+library(phangorn)
+```
+
+# Infer averaged tree and calculate Jumble scores
+The 919 cell 20 PC matrix (Fig. S1, step C2.1) has ~10 replicate cells per cell type group, with 92 cell type groups represented, and 20 PCs. We average these 10 cells for each cell type group, removing unstable cell type groups or singletons, to produce a 53 averaged-cell 20 PC matrix (Fig. S1, Step D1.2). This matrix represents 53 cell type groups, each represented by the averaged value of its 10 replicate cells (Methods).
+
+## Create the 53 averaged-cell 20 PC matrix (Fig. S1, step D1.2)
+
+We first take the 919 cell 20 PC matrix (Fig. S1, step C2.1) and average each of its ten replicates to produce a 92 averaged-cell 20 PC matrix (Fig. S1, step D1.1).
+
+```{r make_pca_mean_mat}
+library(Seurat)
+library(tidyverse)
+library(DropletUtils)
+
+#Input matrix
+#919 cells - 10 cells per cell type cluster, 92 cell type clusters
+matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx"
+
+#perform PCA
+n_PCs = 20
+
+#I printed out the matrix in my original workflow. This is not necessary, you can use the matrix from run_pca itself if desired, as I've done here.
+
+# Print matrix
+#Run PCA and print out 919 cell 20 PC matrix. 
+#run_pca(matrix_path, n_PCs, print=TRUE)
+#load in new pca mat
+#mat <- Read10X("matrix_ave/pca/mean_after_PCA/contml_919cell_subset_pca_var_norm_20PC_mtx/")
+#mat <- t(mat)
+
+# Do not print out matrix
+mat <- run_pca(matrix_path, n_PCs, print=FALSE)
+mat <- t(as.matrix(mat))
+
+#parse out annotations
+orig_ids <- colnames(mat)
+species <- sapply(strsplit(orig_ids, "_"), function(v){return(v[1])})
+cluster_id <- sapply(strsplit(orig_ids, "_"), function(v){return(v[3])})
+cell_type_id <- sapply(strsplit(orig_ids, "_"), function(v){return(v[4])})
+species_cluster <- paste0(species, "_", cluster_id)
+#92 species cluster ids
+unique.species_cluster <- unique(species_cluster)
+
+
+means <- sapply(1:length(unique.species_cluster), function(i){
+  
+
+  mat.subset <- mat[,which(species_cluster == unique.species_cluster[i])]
+  means.df <- rowMeans(mat.subset) %>% as.data.frame()
+  colnames(means.df) <- unique.species_cluster[i]
+  
+  return(means.df)
+  
+}) #close apply
+
+means_mat <- as.data.frame(means)
+#dashes had been replaced with ".". Not sure why, make dashes again
+
+fixed_names  <- gsub("\\.", "-", colnames(means_mat))
+species <- sapply(strsplit(fixed_names, "_"), function(v){return(v[1])})
+cluster <-sapply(strsplit(fixed_names, "_"), function(v){return(v[2])})
+cell_type <- gsub('[0-9+]', "", cluster)
+new_names <- paste0(species, "_sample_", cluster, "_", cell_type, "_barcode")
+colnames(means_mat) <- new_names
+rownames(means_mat) <- rownames(mat)
+
+#return back to post PCA orientation
+means_mat <- t(means_mat)
+
+means_mat.sparse <- as.sparse(means_mat)
+write10xCounts("aqhumor_92means_20PC_after_PCA_mtx", means_mat.sparse, version="3")
+
+```
+
+We then filter out unstable or singleton cell type groups from the 92-average cell 20 PC matrix (Fig. S1, step D1.1) to create the 53 averaged-cell 20 PC matri (Fig. S1, step D1.2).
+
+```{r remove-problem-cells}
+library(Seurat)
+library(DropletUtils)
+library(tidyverse)
+
+#if you printed out hte 92 averaged-cell 20 PC matrix, read it in here. Otherwise, workflow continues from previous chunk
+#mat <- Read10X("aqhumor_92means_20PC_after_PCA_mtx/")
+
+mat <- as.sparse(means_mat)
+
+black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal" , "Endo", "Endo-Schlemms", "Epi-CiliaryNonPigment","Epi-CiliaryPigment" , "Epi-Pigment" , "MastCell" ,  "Myoepithelium" , "Neuron" ,  "SchwalbeLine", "Uveal", "Vascular", "Fibroblast", "Epi-Corneal", "Beam-X", "Beam-A", "BCell")
+
+
+cell_ids <- rownames(mat)
+cell_type_ids <- sapply(strsplit(cell_ids, "_"), function(v){return(v[4])})
+
+#filter matrix
+filter_index <- which(!(cell_type_ids %in% black_list))
+
+mat_filt <- mat[filter_index,]
+  
+#write matrix
+write10xCounts("contml_53mean_pca_var_norm_20PC_afterPCA_mtx", mat_filt, version="3")
+
+#create infile
+make_infile(matrix = mat_filt, print=TRUE)
+```
+
+>>>>> *We provide `contml_53mean_pca_var_norm_20PC_afterPCA_mtx` in average/matrix*
+
+## Perform a Jumble search analysis
+Infer the jumble trees from the infile for the 53 averaged-cell 20 PC matrix (Fig. S1, step D1.2) (ie from `contml_53mean_pca_var_norm_20PC_afterPCA_mtx`).
+
+The bash script `analysis/scripts/average/script_jumble_parallel_53mean_20PC_afterPCA.sh` was used to run contml. The script `analysis/scripts/average/srun_jumble_parallel_53mean_20PC_afterPCA.sh` was used to run that script in parallel on a hpc cluster.
+
+The `contml` settings:
+  C: continuous characters
+  J:   Randomize input order of species (jumble)
+    Random number to seed (see bash script)
+    Number of times to jumble: 100
+
+## Remove missing/errored files
+Some Jumble runs may error and produce no tree. We must remove those files.
+
+Delete any empty tree files using the bash command.
+```
+find ./ -size 0 -print -delete
+```
+This leaves 156 trees.
+>>>>> *The processed outtree files have been provided in `average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed.tar.gz`.*
+
+## Identify best jumble tree
+```{r}
+library(phangorn)
+
+tree_dir_path = "average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed"
+
+#find jumble tree with highest sum of scores
+best_jumble_tree(tree_dir_path = tree_dir_path)
+list.files(tree_dir_path)
+
+```
+7 trees are tied:
+[1] "outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre"
+[2] "outtree_53mean_20PC_afterPCA_jumble_search_1782827219.tre"
+[3] "outtree_53mean_20PC_afterPCA_jumble_search_2207028813.tre"
+[4] "outtree_53mean_20PC_afterPCA_jumble_search_2680760603.tre"
+[5] "outtree_53mean_20PC_afterPCA_jumble_search_3358222241.tre"
+[6] "outtree_53mean_20PC_afterPCA_jumble_search_566689431.tre" 
+[7] "outtree_53mean_20PC_afterPCA_jumble_search_893786863.tre" 
+
+Choose the "best" best jumble tree that is most repesentative topologically of the 7 "best" jumble trees.
+```{r}
+#create a multiphylo of best trees
+best_tree_dir_path <- "average/output/best_trees"
+multiphylo <- combine_multi_trees(best_tree_dir_path)
+list.files(best_tree_dir_path)
+
+#all best trees tied
+RF_dist_mtx <- RF.dist(multiphylo) 
+RF_dist_mat <- as.matrix(RF_dist_mtx)
+colsums <- colSums(RF_dist_mat)
+min <- min(colsums)
+RF_dist_mat[,which(colSums(RF_dist_mat) == min)] 
+
+#all best trees tied
+path_dist_mtx <- path.dist(multiphylo) 
+path_dist_mat <- as.matrix(path_dist_mtx)
+colsums <- colSums(path_dist_mat)
+min <- min(colsums)
+path_dist_mat[,which(colSums(path_dist_mat) == min)] 
+
+#2 trees tied. They have a KF dist = 0 between each other - they are identical.
+KF_dist_mtx <- KF.dist(multiphylo) 
+KF_dist_mat <- as.matrix(KF_dist_mtx)
+colsums <- colSums(KF_dist_mat)
+min <- min(colsums)
+KF_dist_mat[,which(colSums(KF_dist_mat) == min)] 
+```
+
+Trees [1] "outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre" and [3] "outtree_53mean_20PC_afterPCA_jumble_search_2207028813.tre" are tied. They are identical to each other. 
+
+Score and label best jumble tree:
+```{r}
+#make multiphylo object of jumble trees
+tree_dir_path = "average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed"
+multiphylo <- combine_multi_trees(tree_dir_path)
+
+#focal tree (tree to plot jumble scores)
+focal_tree_path = "average/jumble/output/outtrees_53mean_20PC_afterPCA_jumble_search_processed/outtree_53mean_20PC_afterPCA_jumble_search_1166074061.tre"
+
+tree <- score_jumble(multiphylo = multiphylo, focal_tree_path = focal_tree_path, print=TRUE)
+
+#label tree
+mat_path <- "average/matrix/contml_53mean_pca_var_norm_20PC_afterPCA_mtx"
+tree_path <- "scored_tree.tre"
+file_name <- "jumble_53mean_20PC_afterPCA_best_1166074061_scored_label.tre"
+label_tree(mat_path, tree_path, file_name, print=TRUE)
+
+```
+*The file `jumble_53mean_20PC_afterPCA_best_1166074061_scored_label.tre` was used as the focal tree in Figure 5. It is provided in `average/jumble/output/`.*
+
+
+=
+
+
+
+
+
+
+
+
+# Calculate scJackknife scores
