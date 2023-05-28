@@ -16,8 +16,7 @@ library(DropletUtils)
 library(phangorn)
 ```
 
-### Create a list of cells to draw from
-
+# Create a list of cells to draw from
 Create a list of cells to sample cell ids from. The 919 cell matrix has all 92 cell type groups. As in Figure 4, we remove unstable or singleton cell types, leaving 530 cells representing 53 cell type groups. In this case, we restrict sampled cell ids to the 540 cells from 54 cell type groups (the same cell type groups used in Figure 4). 
 
 ```{r permissible_cells}
@@ -41,12 +40,14 @@ permissible_cells <- rownames(mat_filt)
 write.table(permissible_cells, file="540_cell_subset_cell_ids.txt", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
 ```
 
-# Infer averaged tree and calculate Jumble scores
+We will restrict our following analyses to this 540 cel subset of the 919 cell 20 PC matrix (Fig. S1, step C1.1).
+
+# Infer averaged focal tree and calculate Jumble scores
 The 919 cell 20 PC matrix (Fig. S1, step C2.1) has ~10 replicate cells per cell type group, with 92 cell type groups represented, and 20 PCs. We average these 10 cells for each cell type group, removing unstable cell type groups or singletons, to produce a 53 averaged-cell 20 PC matrix (Fig. S1, Step D1.2). This matrix represents 53 cell type groups, each represented by the averaged value of its 10 replicate cells (Methods).
 
 ## Create the 54 averaged-cell 20 PC matrix (Fig. S1, step D1.2)
 
-We first take the 919 cell 20 PC matrix (Fig. S1, step C2.1) and average each of its ten replicates to produce a 92 averaged-cell 20 PC matrix (Fig. S1, step D1.1).
+We first take the 919 cell 20 PC matrix (Fig. S1, step C2.1) and average each of its ten replicates, selecting the 54 cell type groups in our permissible cells list. This creates a 54 averaged-cell 20 PC matrix (Fig. S1, step D1.2)
 
 ```{r make_pca_mean_mat}
 library(Seurat)
@@ -102,12 +103,15 @@ write10xCounts("contml_54means_20PC_afterPCA_mtx", means_mat.sparse, version="3"
 ```
 
 ## Create infile for contml
+
+Create the infile to run `contml` on from this 54 averaged-cell 20 PC matrix.
 ```{r}
 make_infile(matrix_path = "contml_54means_20PC_afterPCA_mtx", print=TRUE)
 ```
 
 ## Infer Jumble trees using contml
-Infer the jumble trees from the infile for the 53 averaged-cell 20 PC matrix (Fig. S1, step D1.2) (ie from `contml_53mean_pca_var_norm_20PC_afterPCA_mtx`).
+
+Infer the jumble trees from the infile for the 54 averaged-cell 20 PC matrix (Fig. S1, step D1.2) (ie from `contml_54means_20PC_afterPCA_mtx`).
 
 The bash script `script_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run contml. The script `run_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run that script in parallel on a hpc cluster. *These scripts are provided in `analysis/scripts/average/jumble/`.*
 
