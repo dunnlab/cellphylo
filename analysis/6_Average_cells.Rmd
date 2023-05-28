@@ -105,7 +105,7 @@ Create the infile to run `contml` on from this 54 averaged-cell 20 PC matrix.
 make_infile(matrix_path = "contml_54means_20PC_afterPCA_mtx", print=TRUE)
 ```
 
-This infile has been provided in *`average/jumble/input/infile_54means_20PC_afterPCA`.*
+This infile has been provided in *`average/jumble/input/infile_54means_20PC_afterPCA`.* `contml ` expects the input file to be named "infile", so rename before use.
 
 ## Infer Jumble trees using contml
 

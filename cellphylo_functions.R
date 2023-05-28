@@ -591,9 +591,9 @@ extract_gene_loadings <- function(ann_table, matrix_path){
 #'
 #'
 #' @importFrom utils write.table
-
-#' @param outtrees_dir Path to directory with contml `outtrees`. This directory contains all `outtree` files created by contml, including for runs that errored.
-#' @param matrix_name_pattern Prefix for matrix name. This function assumes that your matrix names end in `index_num_mtx` eg. for `scjackknife_540_TBE_1_mtx`, the matrix_name_pattern is `scjackknife_540_TBE`
+#' 
+#' @param outtrees_dir Path to directory with contml `outtrees`. This directory contains all `outtree` files created by contml, including for runs that errored (ie unprocessed outtrees directory)
+#' @param matrix_name_pattern Prefix for matrix name. This function assumes that your matrix names end in `index_num_mtx` eg. for `means_5_reps_540_cells_20PC_after_PCA_index_mtx`, the matrix_name_pattern is `means_5_reps_540_cells_20PC_after_PCA`
 #'
 #' @return prints out a list of scjackknife matrix names that produced empty tree files when run through contml.
 #' @export
@@ -626,7 +626,7 @@ id_errored_runs <- function(outtrees_dir, matrix_name_pattern){
 #' @param matrix_dir_path The path to the scjackknife matrices that were used to create the scjackknife infiles. This directory must have matrices that produced empty outtree files removed using cellphylo::id_errored_runs.
 #' @param tree_dir_path The path to the scjakknife outtrees produced by contml. This must have empty outtree files removed.
 #' @param print Boolean. Print out trees with 1) full labels and 2) common labels
-#' @param file_name_prefix The prefix for the outtree files to produce.
+#' @param file_name_prefix The prefix for the outtree file names
 #' @return output A list containing scjackknife trees with full tip name labels ("labelled_tree") and scjackknife trees with comomn labels ("common_labels_tree)
 #' @export
 #'
@@ -685,7 +685,6 @@ label_scjack_trees<- function(n_trees, matrix_dir_path, tree_dir_path, print=TRU
   )#close apply
   
 }
-
 
 #' label_tree
 #'
@@ -1659,3 +1658,215 @@ wrangle_metadata <- function(path_to_meta_file){
   
 }
 
+#' id_errored_runs_mean
+#'
+#' @param outtrees_dir ath to directory with contml `outtrees`. This directory contains all `outtree` files created by contml, including for runs that errored (ie unprocessed outtrees directory)
+#' @param matrix_name_pattern Prefix for matrix name. This function assumes that your matrix names end in `index_num_mtx` eg. for `scjackknife_540_TBE_1_mtx`, the matrix_name_pattern is `scjackknife_540_TBE`
+#'
+#' @return NULL. Prints out a table with matrix ids that produced errored runs
+#' @export
+#'
+#' @examples
+id_errored_runs_mean <- function(outtrees_dir, matrix_name_pattern){
+  
+  files_list <- list.files(path = outtrees_dir, full.names=TRUE, recursive=FALSE )
+  
+  empty_paths <- files_list[file.size(files_list) == 0]
+  empty_files <- sapply(strsplit(empty_paths, "/"), function(v){return(v[length(v)])})
+  
+  #convert to matrices dir names
+  names <- sapply(strsplit(empty_files, "_"), function(v){return(v[length(v)-1])})
+  ### CHANGED from cellphylo2 fun id-errored-runs
+  #matrix_names <- paste0(matrix_name_pattern,"_", names,"_mtx")
+  matrix_names <- paste0(matrix_name_pattern,"_", names)
+  
+  write.table(matrix_names, file = "errored_runs_mean.txt", quote=FALSE, sep = "\t", col.names=FALSE, row.names=FALSE)
+}
+
+#' make_scjack_sample_mean
+#' 
+#' Create resampled matrices where each value is the average of 5 replicate cells per cell type group from a larger matrix. This is used for running the scjackknife analysis for Fig. 5 (averaged tree)
+#' 
+#' @param n_samples Number of scjackknife samples to create
+#' @param matrix_path Path to matrix to sample from. Cell ids must be in cellphylo format
+#' @param sample_size Number of cells to sample and then average per cell type group
+#' @param limit_cells If you want to limit which cell ids to select, provide the list of cell ids to subsample from. Provide a file with a single column of cell ids.
+#' @param file_name String to append to scjack file names
+#' @param print Print out selected cell ids, averaged matrices and rownames of matrices, infiles for each scjackknife sample
+#'
+#' @return NULL. This function is meant to print out scjack samples and does not return an object.
+#' @export
+#'
+#' @examples
+make_scjack_sample_mean <- function(n_samples, matrix_path, sample_size, limit_cells, file_name, print){
+  
+  #make directories to organize
+  if(!dir.exists("average")){
+    dir.create("average")
+  }
+  
+  if(!dir.exists("average/scjackknife")){
+    dir.create("average/scjackknife")
+  }
+  
+  if(!dir.exists(paste0("average/scjackknife/input_", file_name))){
+    dir.create(paste0("average/scjackknife/input_", file_name))
+  }
+  
+  if(!dir.exists(paste0("average/scjackknife/input_", file_name,"/scjack_selected_cells"))){
+    dir.create(paste0("average/scjackknife/input_", file_name,"/scjack_selected_cells"))
+  }
+  
+  if(!dir.exists(paste0("average/scjackknife/input_", file_name,"/scjack_matrices"))){
+    dir.create(paste0("average/scjackknife/input_", file_name,"/scjack_matrices"))
+  }
+  
+  if(!dir.exists(paste0("average/scjackknife/input_", file_name, "/scjack_infiles"))){
+    dir.create(paste0("average/scjackknife/input_", file_name, "/scjack_infiles"))
+  }
+  
+  if(!dir.exists(paste0("average/scjackknife/input_", file_name, "/scjack_matrix_cell_ids"))){
+    dir.create(paste0("average/scjackknife/input_", file_name, "/scjack_matrix_cell_ids"))
+  }
+  
+  sapply(1:n_samples, function(n){
+    
+    sub_means_mat <- subset_mean_matrix(matrix_path = matrix_path, sample_size=sample_size, print=print, file_name=file_name, limit_cells=limit_cells)
+    phylip <- make_infile(matrix = sub_means_mat, print = print)
+    
+    #rename files and put into folders
+    #matrix
+    file.rename(paste0("means_",sample_size, "_reps_", file_name),paste0("average/scjackknife/input_", file_name,"/scjack_matrices/means_",sample_size, "_reps_", file_name, "_", n))
+    #selected cells
+    file.rename(paste0("selected_cells_",sample_size, "_reps_", file_name,".txt"),paste0("average/scjackknife/input_", file_name,"/scjack_selected_cells/selected_cells_",sample_size, "_reps_", file_name,"_",n,".txt"))
+    #matrix cell ids 
+    file.rename(paste0("rownames_means_",sample_size, "_reps_",file_name,".txt"),paste0("average/scjackknife/input_", file_name, "/scjack_matrix_cell_ids/rownames_means_",sample_size, "_reps_",file_name,"_",n,".txt"))
+    #infiles
+    file.rename("infile",paste0("average/scjackknife/input_", file_name, "/scjack_infiles/infile_",sample_size, "_reps_",file_name,"_",n))
+    
+  })
+  
+  
+}
+
+#' subset_mean_matrix
+#' 
+#' Randomly subsample a combined matrix and average each subsample for each cell type group. Cell ids must be in cellphylo format.
+#'
+#' @importFrom Seurat Read10X as.sparse
+#' @importFrom DropletUtils write10xCounts
+#' @importFrom dplyr filter
+#' @importFrom utils write.table
+#' 
+#' @param matrix_path Path to matrix to sample from. Cell ids must be in cellphylo format
+#' @param sample_size Number of cells to sample and then average per cell type group
+#' @param print BOOLEAN. Print out selected cell ids, averaged matrices and rownames of matrices
+#' @param file_name String to append to output matrix name.
+#' @param limit_cells List of cell ids. If you want to limit which cell ids to select, provide the list of cell ids to subsample from.
+#' @return means_mat.sparse The subsampled and averaged matrix in sparse matrix format.
+#' @export
+#'
+#' @examples
+subset_mean_matrix <- function(matrix_path, sample_size, print, file_name, limit_cells){
+  #already made when making mean mat
+  #919 cells - 10 cells per cell type cluster, 92 cell type clusters
+  #matrix_path = "../matrix_final/integrated/cross_species/cross_species_integrated/aqhumor_cross_species_integrated_mtx/"
+  #perform PCA
+  #n_PCs = 20
+  #run_pca(matrix_path, n_PCs, print=TRUE)
+  
+  #PARAMETER mat
+  #load in new pca mat
+  mat <- Read10X(matrix_path)
+  mat <- t(as.matrix(mat))
+  
+  #PARAMETER limit_cells
+  #if no list of cells to limit to, use all cell ids
+  if (missing(limit_cells)){  
+    limit_cells <- colnames(mat)
+  }
+  
+  if (!missing(limit_cells)){  
+    limit_cells <- unlist(limit_cells)
+  }
+  
+  #parse out annotations
+  orig_ids <- limit_cells
+  species <- sapply(strsplit(orig_ids, "_"), function(v){return(v[1])})
+  cluster_id <- sapply(strsplit(orig_ids, "_"), function(v){return(v[3])})
+  cell_type_id <- sapply(strsplit(orig_ids, "_"), function(v){return(v[4])})
+  species_cluster <- paste0(species, "_", cluster_id)
+  #92 species cluster ids
+  unique.species_cluster <- unique(species_cluster)
+  
+  #organize into id.df
+  ids.df <-data.frame(orig_ids = orig_ids, cluster_ids = cluster_id, species_cluster_ids = species_cluster)
+  
+  #PARAMETER sample_size
+  #sample_size=5
+  
+  #same as means but subsample to 5 cells then mean
+  means <- lapply(1:length(unique.species_cluster), function(i){
+    
+    #subset ids.df
+    ids.df.subset <- ids.df %>% filter(species_cluster_ids == unique.species_cluster[i])
+    
+    #randomly 5 cells
+    random_subset <- sample(ids.df.subset$orig_ids, size = sample_size, replace=FALSE)
+    #random_subset <- as.data.frame(random_subset)
+    
+    #subset mat
+    mat.subset <- mat[,which(colnames(mat) %in% random_subset)]
+    
+    #keep track of which cells were selected
+    selected_cells <-  colnames(mat.subset)
+    
+    #average the selected cells
+    means.df <- rowMeans(mat.subset) %>% as.data.frame()
+    colnames(means.df) <- unique.species_cluster[i]
+    
+    return(list(means.df = means.df, selected_cells = selected_cells))
+    
+  }) #close apply
+  
+  
+  #PARAMETER print BOOLEAN
+  if(print==TRUE)
+  {
+    #extract selected_cells from means list
+    selected <- lapply(means,'[[',"selected_cells") %>% unlist()
+    
+    #print out selected cells
+    write.table(selected, paste0("selected_cells_",sample_size, "_reps_", file_name,".txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)
+  }
+  
+  means_mat <- lapply(means,'[[',"means.df")
+  means_mat <- as.data.frame(means_mat)
+  #dashes had been replaced with ".". Not sure why, make dashes again
+  
+  fixed_names  <- gsub("\\.", "-", colnames(means_mat))
+  species <- sapply(strsplit(fixed_names, "_"), function(v){return(v[1])})
+  cluster <-sapply(strsplit(fixed_names, "_"), function(v){return(v[2])})
+  cell_type <- gsub('[0-9+]', "", cluster)
+  new_names <- paste0(species, "_sample_", cluster, "_", cell_type, "_barcode")
+  colnames(means_mat) <- new_names
+  rownames(means_mat) <- rownames(mat)
+  
+  #return back to post PCA orientation
+  means_mat <- t(means_mat)
+  
+  means_mat.sparse <- as.sparse(means_mat)
+  
+  if(print==TRUE){
+    #print matrix
+    write10xCounts(path=paste0("means_",sample_size, "_reps_", file_name), means_mat.sparse, version="3")
+    
+    #print rownames of matrix
+    row_names <- rownames(means_mat.sparse)
+    write.table(row_names, paste0("rownames_means_",sample_size, "_reps_",file_name,".txt"), quote=FALSE, row.names = FALSE, col.names = FALSE)
+    
+  }
+  
+  return(means_mat.sparse)
+  
+}

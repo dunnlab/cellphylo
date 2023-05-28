@@ -39,11 +39,11 @@ file.rename("infile", "tree_inference/54_cell_tree/infile")
 
 
 ```
-
+*This infile has been provided in `jumble/input/infile_54_20PC`*. `contml` expects the input file to be named "infile", so rename this file when running.
 
 ## Infer jumble trees from contml runs
 
-The bash script `scripts/jumble/script_jumble_parallel_54.sh` was used to infer jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis.
+The bash script *`scripts/jumble/script_jumble_parallel_54.sh`* was used to infer jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis. The script *`scripts/jumble/run_jumble_parallel_54.sh`* was used to run `script_jumble_parallel_54.sh` in parallel on the cluster.
 
 The `contml` settings:
   C: continuous characters

@@ -128,7 +128,9 @@ id_errored_runs(outtrees_dir = outtrees_dir, matrix_name_pattern = matrix_name_p
 
 ```
 
-The above function provides a list of matrices whose `contml` runs errored. Use this list to remove these matrices using bash:
+The above function provides a list of matrices whose `contml` runs errored. This list is provided in *`scjackknife/output/output_processed/errored_runs.txt`.*
+
+Use this list to remove these matrices using bash:
 ```
 cd analysis/scjackknife/input_scjack_540_TBE/scjack_matrices
 rm -r $(<errored_runs.txt)
