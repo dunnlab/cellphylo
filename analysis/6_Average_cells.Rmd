@@ -10,17 +10,12 @@ This notebook walks you through the steps to create Figure 5. This tree is infer
 ```{r}
 setwd("~/repo/cellphylo/analysis")
 
-library(Seurat)
-library(tidyverse)
-library(DropletUtils)
-library(phangorn)
 ```
 
 # Create a list of cells to draw from
-Create a list of cells to sample cell ids from. The 919 cell matrix has all 92 cell type groups. As in Figure 4, we remove unstable or singleton cell types, leaving 530 cells representing 53 cell type groups. In this case, we restrict sampled cell ids to the 540 cells from 54 cell type groups (the same cell type groups used in Figure 4). 
+The following workflow draws values from the 919 cell 20 PC matrix (Fig. S1, step C2.1) but limits the cell type groups to the 54 cell type groups featured in Figure 4. Here, we make a list of cells from the 919 cell matrix that only includes cell ids from the 540 cell type groups. This list has 540 cells, with each 54 cell type group represented by 10 cells. We will use this list to restrict downstream analyses.
 
 ```{r permissible_cells}
-library(Seurat)
 
 #identical=TRUE to original average 919 cell 20 PC matrix
 mat <- Read10X("scjackknife/contml_919cell_subset_20PC_mtx/")
@@ -40,25 +35,25 @@ permissible_cells <- rownames(mat_filt)
 write.table(permissible_cells, file="540_cell_subset_cell_ids.txt", sep="\t", row.names=FALSE, col.names=FALSE, quote=FALSE)
 ```
 
-We will restrict our following analyses to this 540 cel subset of the 919 cell 20 PC matrix (Fig. S1, step C1.1).
+We will restrict our following analyses to this 540 cel subset of the 919 cell 20 PC matrix.
 
-# Infer averaged focal tree and calculate Jumble scores
-The 919 cell 20 PC matrix (Fig. S1, step C2.1) has ~10 replicate cells per cell type group, with 92 cell type groups represented, and 20 PCs. We average these 10 cells for each cell type group, removing unstable cell type groups or singletons, to produce a 53 averaged-cell 20 PC matrix (Fig. S1, Step D1.2). This matrix represents 53 cell type groups, each represented by the averaged value of its 10 replicate cells (Methods).
 
-## Create the 54 averaged-cell 20 PC matrix (Fig. S1, step D1.2)
+# Infer Figure 5 focal tree and calculate Jumble scores
 
-We first take the 919 cell 20 PC matrix (Fig. S1, step C2.1) and average each of its ten replicates, selecting the 54 cell type groups in our permissible cells list. This creates a 54 averaged-cell 20 PC matrix (Fig. S1, step D1.2)
+The 919 cell 20 PC matrix (Fig. S1, step C2.1) has ~10 replicate cells per cell type group, with 92 cell type groups represented, and 20 PCs. We average these 10 cells for each cell type group, removing unstable cell type groups or singletons, to produce a 54 averaged-cell 20 PC matrix (Fig. S1, Step D1). This matrix represents 54 cell type groups, each represented by the averaged value of its 10 replicate cells (Methods).
+
+## Create the 54 averaged-cell 20 PC matrix (Fig. S1, step D1)
+
+We first take the 919 cell 20 PC matrix (Fig. S1, step C2.1) and average each of its ten replicates, selecting the 54 cell type groups in our permissible cells list. This creates a 54 averaged-cell 20 PC matrix (Fig. S1, step D1)
 
 ```{r make_pca_mean_mat}
-library(Seurat)
-library(tidyverse)
-library(DropletUtils)
 
 #Input matrix
 #919 cells - 10 cells per cell type cluster, 92 cell type clusters
 mat <- Read10X("scjackknife/contml_919cell_subset_20PC_mtx")
 mat <- t(as.matrix(mat))
 
+#limit the cells to the 54 cell type groups
 permissible_cells <- read.table("average/540_cell_subset_cell_ids.txt") %>% unlist()
 mat.filtered <- mat[,which(colnames(mat) %in% permissible_cells)]
 
@@ -102,6 +97,7 @@ write10xCounts("contml_54means_20PC_afterPCA_mtx", means_mat.sparse, version="3"
 
 ```
 
+
 ## Create infile for contml
 
 Create the infile to run `contml` on from this 54 averaged-cell 20 PC matrix.
@@ -109,9 +105,11 @@ Create the infile to run `contml` on from this 54 averaged-cell 20 PC matrix.
 make_infile(matrix_path = "contml_54means_20PC_afterPCA_mtx", print=TRUE)
 ```
 
+This infile has been provided in *`average/jumble/input/infile_54means_20PC_afterPCA`.*
+
 ## Infer Jumble trees using contml
 
-Infer the jumble trees from the infile for the 54 averaged-cell 20 PC matrix (Fig. S1, step D1.2) (ie from `contml_54means_20PC_afterPCA_mtx`).
+Infer the jumble trees from the infile for the 54 averaged-cell 20 PC matrix (Fig. S1, step D1).
 
 The bash script `script_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run contml. The script `run_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run that script in parallel on a hpc cluster. *These scripts are provided in `analysis/scripts/average/jumble/`.*
 
@@ -134,7 +132,6 @@ The processed outtree files have been provided in *`average/jumble/output/outtre
 
 ## Identify best jumble tree
 ```{r}
-library(phangorn)
 
 tree_dir_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed"
 
@@ -155,7 +152,6 @@ Choose the "best" best jumble tree that is most repesentative topologically of t
 
 
 ```{r}
-library(phangorn)
 
 #create a multiphylo of best trees
 tree_dir_path <- "average/jumble/output/best_trees/"
@@ -193,6 +189,7 @@ The most representative, highest-scoring jumble tree is: `outtree_54mean_20PC_af
 
 Score and label best jumble tree:
 ```{r}
+
 #make multiphylo object of jumble trees
 tree_dir_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/"
 multiphylo <- combine_multi_trees(tree_dir_path)
@@ -214,17 +211,17 @@ label_tree(mat_path, tree_path, file_name, print=TRUE)
 
 
 # Calculate scJackknife scores
-To perform the scJackknife analysis, we take the 919 cell 20 PC matrix (Fig. S1, step C2.1), which has ~10 cells per cell type group (92 cell type groups) and randomly sample and average 5 of those 10 cells for each cell type group.
+To perform the scJackknife analysis, we take the 919 cell 20 PC matrix (Fig. S1, step C2.1), which has ~10 cells per cell type group (92 cell type groups) and randomly sample and average 5 of those 10 cells to produce a jackknifed matrix of 54 averaged-cells and 20 PCs (Fig. S1, step D2).
+
 
 ## Make scJackknife input files
 
-### Make scjack samples
-As in the scJackknife tutorial (`5_scJackknife_analysis.Rmd`), we create scjack samples by randomly sampling 5 cells per cell type group from the 919 cell 20 PC matrix (Fig. S1, step C1.1), limiting our cell type groups to the 54 described above. 
+### Make scjack matrices (Fig. S1, step D2)
+We create scjackknife samples by randomly sampling 5 cells per cell type group from the 919 cell 20 PC matrix (Fig. S1, step C2.1), limiting our cell type groups to the 54 described above. Each jackknifed matrix has 54 values representing the five averaged cells and 20 PCs (Fig. S1, step D2). We do this 500 times to create 500 scjackknife matrices.
 
 The below code creates  `contml` infiles, matrices, and a list of cells that were sampled to make the averaged matrices.
 
 ```{r}
-setwd("~/repo/cellphylo/analysis")
 
 #parameters
 n_samples = 500
