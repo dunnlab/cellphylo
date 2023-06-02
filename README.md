@@ -148,7 +148,7 @@ analysis
 ```
 
 # Supplementary Files  
-Additional supplementary files referenced in the text are provided in `supplementary_files/Mah&Dunn2023_SuppFiles_27May2023.tar.gz`.    
+Additional supplementary files referenced in the text are provided in `supplementary_files/Mah&Dunn2023_SuppFiles_2Jun2023.tar.gz`.    
 
 # Citations   
 Mah, J.L., and Dunn, C.W. Reconstructing cell type evolution across species through cell phylogenies of single-cell RNAseq data. bioRxiv, (2023).  
