@@ -8,12 +8,13 @@ This notebook walks you through the steps to create Figure 5. This tree is infer
 
 # Preliminaries
 ```{r}
+#set the working directory to the analysis directory
 setwd("~/repo/cellphylo/analysis")
 
 ```
 
 # Create a list of cells to draw from
-The following workflow draws values from the 919 cell 20 PC matrix (Fig. S1, step C2.1) but limits the cell type groups to the 54 cell type groups featured in Figure 4. Here, we make a list of cells from the 919 cell matrix that only includes cell ids from the 540 cell type groups. This list has 540 cells, with each 54 cell type group represented by 10 cells. We will use this list to restrict downstream analyses.
+The following workflow draws values from the 919 cell 20 PC matrix (Fig. S1, step C2.1) but limits the cell type groups to the 54 cell type groups featured in Figure 4. Here, we make a list of cells from the 919 cell matrix that only includes cell ids from the 540 cell type groups. This list has 540 cells, with each of the 54 cell type group represented by 10 cells. We will use this list to restrict downstream analyses.
 
 ```{r permissible_cells}
 
@@ -115,9 +116,9 @@ The bash script `script_jumble_parallel_54mean_20PC_afterPCA.sh` was used to run
 
 The `contml` settings:
   C: continuous characters
-  J:   Randomize input order of species (jumble)
-    Random number to seed (see bash script)
-    Number of times to jumble: 100
+  J: Randomize input order of species (jumble)
+      Random number to seed (see bash script)
+      Number of times to jumble: 100
 
 ## Remove missing/errored files
 Some Jumble runs may error and produce no tree. We must remove those files.
@@ -147,6 +148,8 @@ outtree_54mean_20PC_afterPCA_jumble_search_1910156897.tre
 outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre
 outtree_54mean_20PC_afterPCA_jumble_search_2741266717.tre
 outtree_54mean_20PC_afterPCA_jumble_search_3594350545.tre
+
+Deposit these trees in a directory called `best_trees` in `average/jumble/output/`. This directory is not provided but these trees are available in `average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed`.
 
 Choose the "best" best jumble tree that is most repesentative topologically of the 5 "best" jumble trees. We calculated Robinson-Foulds, path distance, and Kuhner-Felsenstein distance.
 
@@ -200,9 +203,10 @@ focal_tree_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_se
 tree <- score_jumble(multiphylo = multiphylo, focal_tree_path = focal_tree_path, print=TRUE)
 
 #label tree
+#this matrix was produced is Fig. S1 step D1. It is not provided as you may produce it above.
 mat_path <- "contml_54means_20PC_afterPCA_mtx/"
 tree_path <- "scored_tree.tre"
-file_name <- "54mean_20PC_afterPCA_jumble_search_2525674179_scored_label.tre"
+file_name <- "54mean_20PC_afterPCA_jumble_search_2525674179_scored_label2.tre"
 label_tree(mat_path, tree_path, file_name, print=TRUE)
 
 ```
@@ -217,7 +221,7 @@ To perform the scJackknife analysis, we take the 919 cell 20 PC matrix (Fig. S1,
 ## Make scJackknife input files
 
 ### Make scjack matrices (Fig. S1, step D2)
-We create scjackknife samples by randomly sampling 5 cells per cell type group from the 919 cell 20 PC matrix (Fig. S1, step C2.1), limiting our cell type groups to the 54 described above. Each jackknifed matrix has 54 values representing the five averaged cells and 20 PCs (Fig. S1, step D2). We do this 500 times to create 500 scjackknife matrices.
+We create scjackknife samples by randomly sampling 5 cells per cell type group from the 919 cell 20 PC matrix (Fig. S1, step C2.1), limiting our cell type groups to the 54 described above. Each jackknifed matrix has 54 values, each representing the average of five randomly chosen replicates, and 20 PCs (Fig. S1, step D2). We do this 500 times to create 500 scjackknife matrices.
 
 The below code creates  `contml` infiles, matrices, and a list of cells that were sampled to make the averaged matrices.
 
@@ -228,7 +232,7 @@ n_samples = 500
 matrix_path = "scjackknife/contml_919cell_subset_20PC_mtx"
 sample_size=5
 print=TRUE
-file_name = "540_cells_20PC_after_PCA"
+file_name = "540_cells_20PC_after_PCA2"
 # limit cells to the 540 cells that represent the filtered 54 cell type groups
 limit_cells <- read.table("average/540_cell_subset_cell_ids.txt")
 
@@ -239,16 +243,20 @@ make_scjack_sample_mean(n_samples=n_samples, mat=matrix_path, sample_size=sample
 ```
 
 
-We produce 500 scjackknifed averaged matrices, the `contml` infiles representing these matrices, and a list of the 5 cells sampled for each cell type group for each matrix.
+We produce 500 scjackknifed averaged matrices (`scjack_matrices/`), the `contml` infiles (`scjack_infiles/`) representing these matrices, a list of cell ids in the order they are found in the matrix (`scjack_matrix_cell_ids/`), and a list of the 5 cells sampled for each cell type group for each matrix (`scjack_selected_cells/`). 
 
-We provide these input files in *`average/scjackknife/input/input_540_cells_20PC_after_PCA.tar.gz`.*
+This takes ~8-10 min on a laptop with 2 cores and 16 GiB memory.
+
+For reproducibility, we provide these input files in *`average/scjackknife/input/input_540_cells_20PC_after_PCA.tar.gz`.*
 
 ### Create scripts to infer scjackknife trees with contml
 Use the infiles created above to run `contml`.
 
 `contml` was run using the same options as for the jumble trees:
-  C: continuous data
-  J: jumble, 100x with random seed
+  C: continuous characters
+  J: Randomize input order of species (jumble)
+      Random number to seed (see bash script)
+      Number of times to jumble: 100
 
 1. We created a template for the script that is executed for each contml run. This has been provided as `in_script_scjack_parallel_means_5reps_540.sh`
 
@@ -258,9 +266,9 @@ Use the infiles created above to run `contml`.
 infiles should be in a directory called `scjack_infiles`
 scripts should be present in the working directory (ie not in a directory)
 
-We have included the three scripts described above in *`scripts/average/scjack'* and the scjackknife run scripts (the output of running the three above scripts) in *`scripts/scjackknife/scjack_scripts_mean.tar.gz`*
+We have included the three scripts described above in *`scripts/average/scjack'* and the scjackknife run scripts (the output of `make_reps_scjack_means_5reps_540.sh`) in *`scripts/scjackknife/scjack_scripts_mean.tar.gz`*
 
-Using these scripts to run `contml` produced 500 outtrees representing a scjackknife tree inferred from each 54 averaged cell matrix.
+Using these scripts to run `contml` produced 500 scjackknife trees.
 
 
 ## Process output files
@@ -272,14 +280,15 @@ find ./ -size 0 -print -delete
 ```
 393/500 trees survived.
 
-Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. *This directory has been provided as `average/scjackknife/output/output_processed/outtrees_scjack_means_5reps_540_processed.tar.gz`.*
+Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. This directory has been provided as *`average/scjackknife/output/output_processed/outtrees_scjack_means_5reps_540_processed.tar.gz`.*
 
-Removing files causes the index between the scjack matrices and `outtree` and matrix files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
+Removing files causes the index between the scjack matrices and `outtree` files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
 
 Identify runs that errored:
 ```{r}
 
-outtrees_dir = "~/repo/aqhumor/AqHum_5Species/aqhumor_final/average/trees_ave/scjack/after_PCA/540_cells/output_540_cells_20PC_after_PCA/outtrees_scjack_means_5reps_540/"
+#this is the outtree folder of scjackknife trees that has not been filtered for empty files. I do not include it but it is available upon request. 
+outtrees_dir = "outtrees_scjack_means_5reps_540/"
 matrix_name_pattern = "means_5_reps_540_cells_20PC_after_PCA"
 
 id_errored_runs_mean(outtrees_dir = outtrees_dir, matrix_name_pattern = matrix_name_pattern)
@@ -294,7 +303,7 @@ rm -r $(<errored_runs_mean.txt)
 
 ```
 
-Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. *This has been provided as `average/scjackknife/output/output_processed/scjack_matrices_processed.tar.gz`*
+Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. This has been provided as *`average/scjackknife/output/output_processed/scjack_matrices_processed.tar.gz`*
 
 
 ## Prepare input files for Booster.
@@ -312,6 +321,8 @@ file_name_prefix = "outtree_scjack_means_5reps_540"
 labelled_trees <- label_scjack_trees(n_trees = n_trees, matrix_dir_path = matrix_dir_path, tree_dir_path = tree_dir_path, print=TRUE, file_name_prefix=file_name_prefix)
 
 ```
+This takes ~8-10 min on a laptop with 2 cores and 16 GiB memory.
+
 The trees that have been labelled with common labels have been provided in 
 *`average/scjackknife/output/output_processed/outtree_scjack_means_5reps_540_common_label.tar.gz`*
 
@@ -321,6 +332,7 @@ The trees that have been labelled with common labels have been provided in
 
 tree <- read.tree("average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre")
 
+#contml_54means_20PC_afterPCA_mtx/ is not provided but you may generate it as described above.
 labelled_tree <- label_tree(matrix_path = "../../aqhumor/AqHum_5Species/aqhumor_final/average/trees_ave/jumble/54_mean/54mean_20PC_afterPCA/contml_54means_20PC_afterPCA_mtx/", tree_path = "average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre", file_name = "outtree_54mean_20PC_afterPCA_jumble_search_2525674179_label.tre", print=FALSE)
 
 
@@ -351,6 +363,8 @@ write.tree(multi_trees, file="multiphylo_scjack_means_5reps_540_common_label.tre
 To facilitate reproduction, this multiphylo tree file has been provided in *`average/booster/multiphylo_scjack_means_5reps_540_common_label.tre`*
 
 ## Run booster
+
+Booster may be downloaded from `https://github.com/evolbioinfo/booster`.
 
 ```
 ./booster_macos64  -i outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label.tre -b multiphylo_scjack_means_5reps_540_common_label.tre > outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label_best_tree_TBE.tre
