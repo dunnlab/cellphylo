@@ -818,7 +818,7 @@ make_pc_sweep_infiles <- function(matrix_path, run_PCA = FALSE, PC_range=c(3:100
     #format to phylip
     phylip <- make_infile(matrix = x.sweep.matrix, print=FALSE)
     #write table
-    write.table(phylip, file=paste0("PC_sweep/infiles/infile_pc_sweep_",c), quote=FALSE, sep=" ",   row.names=FALSE, col.names=FALSE, na= "")
+    write.table(phylip, file=paste0("PC_sweep/infiles/infile_pca_var_norm_pc_sweep_",c), quote=FALSE, sep=" ",   row.names=FALSE, col.names=FALSE, na= "")
     print(paste0("infile ", c))
   } #close function
   ) #close lapply

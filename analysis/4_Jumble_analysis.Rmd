@@ -12,10 +12,83 @@ library(ape)
 library(phangorn)
 library(proxy)
 
+#set the working directory to the analysis directory
 setwd("~/repo/cellphylo/analysis")
 
 ```
 
+# Create matrices for inference of the focal phylogeny in Figure 4
+
+## Create 92 cell 20 PC matrix (Fig. S1, step C1.1)
+Preliminary `contml` runs were performed on a 92 cell 20 PC matrix (Fig. S1, step C2), which contains 1 cell per cell type group per species. All cell type groups (92) were retained. 
+
+Because sampling is random, for reproducibility we have provided the 92 cell matrix and list of sampled cells we used in our analysis: *`tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/`*.
+
+However, if you'd like to create a new 92 cell matrix use the below code:
+
+```{r create-92cell-mat}
+#deposit matrix in folder
+if(!dir.exists("tree_inference")){
+  dir.create("tree_inference")
+}
+
+if(!dir.exists("tree_inference/92_cell_tree")){
+  dir.create("tree_inference/92_cell_tree")
+}
+
+#this prints out a list of randomly subsetted cells, 1 cell per cell type group per species. These cells are drawn from the cross-species integrated matrix
+subset_mat <- subset_combined_matrix(matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", sample_size=1, print=TRUE)
+
+file.rename("aqhumor_cross_species_92_subset_mtx", "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset_mtx")
+
+file.rename("aqhumor_cross_species_92_subset.txt", "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset.txt")
+
+#The list that is produced is then used to subset the 919 cell 919 PC matrix. We can use the run_pca() command to do so.
+subset_mat_pca <- run_pca(matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", n_PCs = 20, subset_file_path = "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset.txt", print=TRUE)
+
+file.rename("contml_92cell_subset_pca_var_norm_20PC_mtx", "tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx")
+
+```
+
+## Create 54 cell 20 PC matrix (Fig. S1, step C1.2)
+We further subsetted the 92 cell matrix (Fig. S1, step C1.1) to 54 cells (Fig. S1, step C1.2).
+
+The following script intakes the 92 cell 20 PC matrix (Fig. S1, step C1.1) and remove cell type groups that either: 1) consistently failed to form clades and disrupted other cell type clades, or 2) existed only in a single species. 
+
+
+```{r create-54cell-mat}
+
+#for reproducibility, we have provided the 92 cell 20 PC matrix
+mat <- Read10X("tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/")
+
+#remove unstable cells or singletons
+black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal", "Endo", "Endo_Schlemms", "Epi-CiliaryNonPigment", "Epi-CiliaryPigment","Epi-Pigment", "MastCell", "Myoepithelium", "Neuron", "SchwalbeLine", "Uveal","Vascular","Beam-A", "Beam-X", "Epi-Corneal", "Fibroblast", "BCell")
+
+
+cell_ids <- rownames(mat)
+cell_type_ids <- sapply(strsplit(cell_ids, "_"), function(v){return(v[4])})
+
+filter_index <- which(!(cell_type_ids %in% black_list))
+
+mat_filt <- mat[filter_index,]
+
+#write matrix
+
+write10xCounts("contml_54cell_subset_pca_var_norm_20PC_mtx", mat_filt, version="3")
+
+if(!dir.exists("tree_inference")){
+   dir.create("tree_inference")}
+
+if(!dir.exists("tree_inference/54_cell_tree")){
+    dir.create("tree_inference/54_cell_tree")
+    }
+file.rename("contml_54cell_subset_pca_var_norm_20PC_mtx", "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx")
+
+```
+
+For reproducibility we provide the 54 cell matrix we used in our analyses in:  *`tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx`*.
+
+This is the matrix used to create the focal phylogeny in Figure 4. 
 
 # Jumble analysis
 
@@ -23,7 +96,9 @@ This workflow calculates jumble trees, removes errored files, and then calculate
 
 ## Create infile for jumble tree
 
-The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C1.2). See `2_Create_Matrices.Rmd`.  
+The jumble analysis was performed on the 54 cell 20 PC matrix (Fig. S1, step C1.2). This matrix has been provided in `tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx/` for reproducibility.  
+
+This matrix must be converted into an `infile`, the input file format `contml` requires.
 
 ```{r}
 
@@ -39,11 +114,14 @@ file.rename("infile", "tree_inference/54_cell_tree/infile")
 
 
 ```
-*This infile has been provided in `jumble/input/infile_54_20PC`*. `contml` expects the input file to be named "infile", so rename this file when running.
+This infile has been provided in *`jumble/input/infile_54_20PC`*, for convenience. `contml` expects the input file to be named "infile", so rename this file when running.
+
 
 ## Infer jumble trees from contml runs
 
-The bash script *`scripts/jumble/script_jumble_parallel_54.sh`* was used to infer jumble trees from a contml infile. It produces a random seed for contml to randomize the order of input taxa and runs `contml`. Running this script produces 100 jumble trees, from which the single tree with the best likelihood score is selected as the final output tree. This was performed 100 times to obtain 100 high-likelihood jumble trees for downstream analysis. The script *`scripts/jumble/run_jumble_parallel_54.sh`* was used to run `script_jumble_parallel_54.sh` in parallel on the cluster.
+The bash script *`script_jumble_parallel_54.sh`* was used to infer the jumble trees from the infile. This script produces a random seed, tells `contml` to randomly jumble input order 100x, and performs a maximum likelihood tree search to produce 100 jumble trees. From these trees, the jumble tree with the highest likelihood is selected as the final output of the run. This was performed 250 times to obtain 250 high-likelihood jumble trees for downstream analysis. 
+
+The script *`run_jumble_parallel_54.sh`* was used to run `script_jumble_parallel_54.sh` in parallel on a hpc cluster.
 
 The `contml` settings:
   C: continuous characters
@@ -52,7 +130,7 @@ The `contml` settings:
     Number of times to jumble: 100
   G: Global rearrangements
   
-Infer the jumble trees from the infile for the 54 cell 20 PC matrix (Fig. S1, step C1.2)
+The bash scripts are available in `scripts/jumble/`.
 
 
 ## Remove missing/errored files
@@ -63,7 +141,8 @@ Delete any empty tree files using the bash command.
 find ./ -size 0 -print -delete
 ```
 
-*The processed output trees have been provided as `jumble/output/outtrees_54_jumble_search_processed.tar.gz`*
+Use the `outtree` directory with empty tree files removed for all downstream analysis. This directory has been provided as *`jumble/output/outtrees_54_jumble_search_processed.tar.gz`*
+
 
 ## Calculate jumble scores and identify the best-scoring jumble tree
 
@@ -155,8 +234,7 @@ labelled_trees <- lapply(tree_list, function(trees){
 
 
 ### Choose the most representative 'best tree'
-There are 14 best trees tied for best sum/mean of jumble scores. Choose the tree that is most representative of the best trees. This tree is plotted in Figure 4 of Mah & Dunn (2023).
-
+There are 14 best trees tied for best sum/mean of jumble scores. Choose the tree that is most representative of the best trees. We identify this tree by calculating the distances between the 14 trees among each other and selecting the tree with the smallest sum of distances. I examined Robinson-Foulds, path-distance and Kuhner-Felsenstein distance. 
 
 ```{r}
 
@@ -166,19 +244,27 @@ multiphylo <- combine_multi_trees(tree_dir_path)
 
 #make a distance matrix. See phangorn::treedist for description of distance metrics.
 #using Robinson-Foulds distance
-RF_dist_mtx <- RF.dist(multiphylo) #all distances0
+RF_dist_mtx <- RF.dist(multiphylo) #all distances 0
+RF_dist_mtx
+
 #using path distance
 path_dist_mtx <- path.dist(multiphylo) #all distances 0
+path_dist_mtx 
+
 #using Kuhner & Felsenstein (1994) distance.
 KF_dist_mtx <- KF.dist(multiphylo) #distances vary when branch length is taken into account
+KF_dist_mtx
 
 #which tree has the smallest sum of KF_dists?
 KF_mat <- as.matrix(KF_dist_mtx)
 colsums <- colSums(KF_mat)
 min <- min(colsums) #0.2320657
 
+#Tree index 2 < tree index 11
 
 ```
 
-The tree with the minimum *unrounded* Kuhner-Felsenstein distance with all other "best trees" is outtree_54_jumble_search_1249177875.tre. Thus, this tree and its jumble scores was chosen to provide the topology of the tree in Figure 4. *We provide this tree at `analysis/jumble/output/outtree_54_jumble_search_1249177875.tre`.*
+The tree with the minimum *unrounded* Kuhner-Felsenstein distance with all other "best trees" is `outtree_54_jumble_search_1249177875.tre`. Thus, this tree and its jumble scores was chosen to provide the topology of the tree in Figure 4. 
+
+We provide this scored tree at *`analysis/jumble/output/outtree_54_jumble_search_1249177875_scored_label.tre`.*
 

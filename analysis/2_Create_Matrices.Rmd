@@ -4,21 +4,17 @@ title: "Create matrices"
 
 Run `1_wrangle_data.Rmd` to wrangle UMI matrices into cellphylo format (Fig. S1, step 1).
 
-This notebook walks you through Fig. S1, steps 2-7, of the cellphylo workflow created for Mah & Dunn 2023. 
+This notebook walks you through Fig. S1, steps 2-6, of the cellphylo workflow created for Mah & Dunn 2023.
 
 The steps are:  
 2 & 3. Normalization and within-species integration
 4. Randomly subset matrices
 5. Combine matrices by gene orthology 
 6. Cross-species integration  
-7. PCA: rotation and rank reduction of data  
-
-This will produe a 919 cell 919 PC matrix from which the experiments of this paper were performed upon. This matrix is stored in the R object: xxx.  
-
 
 # Preliminaries
 ```{r setup}
-#set working directory
+#set working directory to the analysis directory
 setwd("~/repo/cellphylo/analysis")
 
 #load libraries
@@ -36,11 +32,9 @@ Fig. S1 steps 2 and 3
 
 For each species, we use the Seurat workflow to normalize counts using a negative binomial model (via SCTransform) and integrate sequencing batches within each species.    
 
-This step is memory intensive and you may have to run this on an HPC cluster.  
-The human data set required 125 GiB RAM per CPU.  
-All other species' data sets required 50 Gib ram per CPU.
-
-Parameter values used by Mah & Dunn (2023) for `within_species_integration` are set as default.  
+This step is memory intensive and you may have to run this on an hpc cluster.  
+  The human data set required 125 GiB RAM per CPU.  
+  All other species' data sets required 50 Gib ram per CPU.
 
 ```{r within-species-integration}
 
@@ -61,7 +55,7 @@ pig_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_w
 
 ```
 
-Moving forward, we want to use the matrix of integrated Pearson's residuals, labelled: `matrix_sct_integrated_pearson_residuals`.  
+Moving forward, we want to use the matrix of normalized and integrated Pearson's residuals that is produced after integration. Note: these matrices are too large to provide in the repo but they are available upon request. Downstream matrices calculated from these matrices are provided, and described below.
 
 ## Step 4. Randomly subset matrices  
 Fig. S1 step 4
@@ -69,19 +63,23 @@ Fig. S1 step 4
 ### Identify the cell type with the fewest replicates
 To make later analyses computationally feasible, we randomly subset each species' matrix so that all cell type groups across all five species have the same number of replicates. This means subsetting to the smallest number of replicates displayed by any one cell type group.  
 
-
+The function `count_replicates` counts the number of replicate cells per cell type group for each matrix.
 ```{r count-replicates}
 
-#"within-species" is the directory of matrices to quantify cell type group replicates. It expects matrices in 10x feature-barcode format and cell ids in cellphylo format.
+#`matrix/within-species` is a directory containing the five within-species integrated matrices that were created above. These matrices are too large to provide in the repo but are available upon request.
+
 count_replicates("matrix/within-species")
 
 ```
 
-We determine that the cell type group with the smallest number of replicates are mouse B cells, with 10 cells.  
+We determine that the cell type group with the smallest number of replicates are mouse B cells, with 10 replicate cells.
+
 
 ### Subset the matrices 
 
 For each species, randomly subset the full matrix to 10 cells per cell type group.  
+
+The normalized and within-species matrices are not provided due to size, but we provide the subsetted matrices in *`analysis/matrix/subset`*. These subsetted matrices are provided to ensure reproducibility, since subsetting is random. However, if you'd like to create your own subsetted matrices, use the code below.
 
 ```{r subset-cells} 
 #human
@@ -97,10 +95,10 @@ subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pears
 
 ```
 
-*To make the analyses reproducible, we have provided the subsetted matrices we used in `analysis/matrix/subset`*
+
 
 # Cross-species Analysis
-The cross-species analysis is performed on a combined matrix of all five species (Fig. S1, steps 5-7).
+The cross-species analysis (steps 5 and 6) is performed on a combined matrix of all five species. 
 
 ## Step 5. Combine matrices by gene orthology 
 Fig. S1 step 5
@@ -109,9 +107,9 @@ We will combine the species matrix into a single matrix based on shared orthlogs
 
 ### Wrangle the orthlogs table  
 
-Gene symbols vary between species. We need to create a mapping between gene symbols before we can combine the species' matrices by gene orthology. We will obtain this mapping from [Ensembl Biomart](https://www.ensembl.org/biomart/martview/).  
+Gene symbols vary between species. We need to create a mapping between gene symbols before we can combine the species' matrices by gene orthology. We will obtain this mapping from [Ensembl Biomart](https://www.ensembl.org/biomart/martview/). We provide the raw file we downloaded from Ensembl Biomart in `ann/Aqhumor_ensembl_orthologs.txt`.
 
-The below code is designed to data wrangle the Ensembl ortholog file downloaded for Mah and Dunn (2023). This wrangling facilitates downstream analysis. I have provided this orthology table: `Aqhumor_ensembl_orthologs.txt`. Put this orthology table in the `ann` folder. 
+The below code is designed to data wrangle the Ensembl ortholog file `Aqhumor_ensembl_orthologs.txt` for downstream analyses. This produces `AqHumor_ensembl_orthologs_wrangled.tsv`.
 
 
 ```{r wrangle-ortholog-map}
@@ -140,9 +138,8 @@ This produces `AqHumor_ensembl_orthologs_wrangled.tsv` and TSV table mapping gen
 
 ### Combine all five species' matrices by shared orthologs
 
-Combine the subsetted matrices by shared orthlogs.  
+Combine the subsetted matrices (Fig. S1, step 4) by shared orthlogs into a single combined matrix (Fig. S1, step 5)
 
-To make the analyses repeatable, I have included the subsetted matrices I used in the analysis.
 ```{r combine-matrices}
 
 matrix_dir_path <- "matrix/subset/"
@@ -154,7 +151,10 @@ combined_matrix <- combine_matrices(matrix_list = matrix_list, ortholog_map_path
 
 ```
 
-This produces the matrix `matrix/combined_by_orthology/aqhumor_combined_mtx`. `aqhumor_combined_mtx` is not yet cross-species integrated.
+This produces the matrix `matrix/combined_by_orthology/aqhumor_combined_mtx/`.
+
+`aqhumor_combined_mtx` is not yet cross-species integrated.
+
 
 ## Step 6. Cross-Species integration
 Fig. S1 step 6
@@ -178,79 +178,4 @@ p3
 ```
 This produces the matrix `matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx"` and also an R object `cross_species_integrated.rds` that is the Seurat object created by this workflow.
 
-*To facilitate reproducibilty, we have provided this matrix in `matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx`*
-
-# Create matricecs for tree inference  
-
-## Create 92 cell matrix (Fig. S1, step C1.1)
-Preliminary `contml` runs were performed on a 92 cell 20 PC matrix (Fig. S1, step C2), which contains 1 cell per cell type group per species. All cell type groups (92) were retained. 
-
-*Because sampling is random, we have provided the 92 cell matrix and list of sampled cells we used in our analysis:`tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/`*.
-
-However, if you'd like to create a new 92 cell matrix use the below code:
-
-```{r create-92cell-mat}
-#deposit matrix in folder
-if(!dir.exists("tree_inference")){
-  dir.create("tree_inference")
-}
-
-if(!dir.exists("tree_inference/92_cell_tree")){
-  dir.create("tree_inference/92_cell_tree")
-}
-
-#this prints out a list of randomly subsetted cells, 1 cell per cell type group per species. 
-subset_mat <- subset_combined_matrix(matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", sample_size=1, print=TRUE)
-#This produces a list of cells that have been subsetted from the cross-species integrated matrix
-
-file.rename("aqhumor_cross_species_92_subset_mtx", "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset_mtx")
-
-file.rename("aqhumor_cross_species_92_subset.txt", "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset.txt")
-
-#The list that is produced is then used to subset the 919 cell 919 PC matrix. We can use the run_pca() command to do so.
-subset_mat_pca <- run_pca(matrix_path = "matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", n_PCs = 20, subset_file_path = "tree_inference/92_cell_tree/aqhumor_cross_species_92_subset.txt", print=TRUE)
-
-file.rename("contml_92cell_subset_pca_var_norm_20PC_mtx", "tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx")
-
-```
-
-## Create 54 cell matrix (Fig. S1, step C1.2)
-We further subsetted the 92 cell matrix (Fig. S1, step C1.1) to 54 cells (Fig. S1, step C1.2).
-
-The following script intakes the 92 cell 20 PC matrix (Fig. S1, step C1.1) and remove cell type groups that either: 1) consistently failed to form clades and disrupted other cell type clades, or 2) existed only in a single species. 
-
-
-```{r create-54cell-mat}
-
-#for reproducibility, we have provided the 92 cell 20 PC matrix
-mat <- Read10X("tree_inference/92_cell_tree/contml_92cell_subset_pca_var_norm_20PC_mtx/")
-
-#remove unstable cells or singletons
-black_list <- c("Beam-B", "Beam-Y", "CollectorChnlAqVein", "Corneal", "Endo", "Endo_Schlemms", "Epi-CiliaryNonPigment", "Epi-CiliaryPigment","Epi-Pigment", "MastCell", "Myoepithelium", "Neuron", "SchwalbeLine", "Uveal","Vascular","Beam-A", "Beam-X", "Epi-Corneal", "Fibroblast", "BCell")
-
-
-cell_ids <- rownames(mat)
-cell_type_ids <- sapply(strsplit(cell_ids, "_"), function(v){return(v[4])})
-
-filter_index <- which(!(cell_type_ids %in% black_list))
-
-mat_filt <- mat[filter_index,]
-
-#write matrix
-
-write10xCounts("contml_54cell_subset_pca_var_norm_20PC_mtx", mat_filt, version="3")
-
-if(!dir.exists("tree_inference")){
-   dir.create("tree_inference")}
-
-if(!dir.exists("tree_inference/54_cell_tree")){
-    dir.create("tree_inference/54_cell_tree")
-    }
-file.rename("contml_54cell_subset_pca_var_norm_20PC_mtx", "tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx")
-
-```
-
-*We have provided the matrix in tree_inference/54_cell_tree/contml_54cell_subset_pca_var_norm_20PC_mtx`*.
-
-This is the matrix used to create the tree in Figure 4. 
-
+For convenience, we have provided this matrix in *`matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx`*

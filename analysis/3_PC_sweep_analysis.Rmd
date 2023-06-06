@@ -5,15 +5,16 @@ date: "2023-04-25"
 ---
 
 This notebook outlines how to reproduce the PC sweep experiment (Fig. 2, Mah & Dunn 2023).
-To perform the PC sweep experiment, we perform PCA on the cross-species integrated matrix (Fig. S1, step 6) to create a 919 cell 919 PC matrix (Fig. S1 step 7). We then subsetted it from 3 to 100 PCs, producing 98 matrices which we converted into `contml` infiles for phylogenetic inference. 
+To perform the PC sweep experiment, we perform PCA on the cross-species integrated matrix (Fig. S1, step 6) to create a 919 cell 919 PC matrix (Fig. S1 step 7). We then subset it from 3 to 100 PCs, producing 98 matrices which we converted into `contml` infiles for phylogenetic inference. 
 
 # Preliminaries
 
 ```{r}
-#set working directory
-setwd("~/repo/cellphylo/scripts/cellphylo_analysis/")
+#set working directory to the analysis directory
+setwd("~/repo/cellphylo/analysis")
 
 ```
+
 
 # Make PC sweep infiles
 Subset the 919 cell 919 PC matrix to 3-100 PCs and print out the matrices as `contml` infiles.
@@ -25,7 +26,7 @@ make_pc_sweep_infiles(matrix_path="matrix/cross-species_integration/aqhumor_cros
 
 ```
 
-*To facilitate reproducibility, we have provided the infiles in `PC_sweep/input/pc_sweep_infiles_final.tar.gz`*
+To facilitate reproducibility, we have provided the infiles in `PC_sweep/input/pc_sweep_infiles_final.tar.gz`*
 
 
 # Infer a cell phylogeny from each infile with `contml`  
@@ -34,7 +35,7 @@ For each PC sweep infile, infer a tree using `contml`.
 `contml` is part of PHYLIP. Install [`PHYLIP v. 3.697`](https://github.com/dunnlab/phylip). We ran PHYLIP in an [Ubuntu docker container](https://github.com/dunnlab/ubuntu-dev).
 
 `contml` was run using the 'C' (continuous) option, and all other options left at default.  
-The bash script `scripts/PC_sweep/contml_pc_sweep_919.sh` can be used to infer the trees for the pc sweep analysis. 
+The bash script `scripts/PC_sweep/contml_pc_sweep_919.sh` was used to infer the trees for the pc sweep analysis. 
 
 *The inferred trees are provided in `PC_sweep/output/pc_sweep_919_outtrees.tar.gz`*
 

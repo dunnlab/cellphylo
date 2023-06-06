@@ -245,9 +245,10 @@ make_scjack_sample_mean(n_samples=n_samples, mat=matrix_path, sample_size=sample
 
 We produce 500 scjackknifed averaged matrices (`scjack_matrices/`), the `contml` infiles (`scjack_infiles/`) representing these matrices, a list of cell ids in the order they are found in the matrix (`scjack_matrix_cell_ids/`), and a list of the 5 cells sampled for each cell type group for each matrix (`scjack_selected_cells/`). 
 
+Since sampling is random, for reproducibility, we provide these input files in *`average/scjackknife/input/input_540_cells_20PC_after_PCA.tar.gz`.*
+
 This takes ~8-10 min on a laptop with 2 cores and 16 GiB memory.
 
-For reproducibility, we provide these input files in *`average/scjackknife/input/input_540_cells_20PC_after_PCA.tar.gz`.*
 
 ### Create scripts to infer scjackknife trees with contml
 Use the infiles created above to run `contml`.
@@ -268,7 +269,9 @@ scripts should be present in the working directory (ie not in a directory)
 
 We have included the three scripts described above in *`scripts/average/scjack'* and the scjackknife run scripts (the output of `make_reps_scjack_means_5reps_540.sh`) in *`scripts/scjackknife/scjack_scripts_mean.tar.gz`*
 
-Using these scripts to run `contml` produced 500 scjackknife trees.
+Use the scjack infiles and the above scripts to run `contml`. When running `contml`, the scjack infiles should be in a folder called `scjack_infiles`. The scjack scripts and `run_scjack_parallel_means_5reps_540.sh` should be in the present working directory (ie. not in a folder).
+
+Doing the above produced 500 high likelihood scjackknife trees. 
 
 
 ## Process output files
@@ -278,16 +281,16 @@ Delete any empty tree files
 ```
 find ./ -size 0 -print -delete
 ```
-393/500 trees survived.
+There are 393 trees remaining.
 
-Moving forward, use the directories of `outtrees` that have had errored runs removed for downstream analyses. This directory has been provided as *`average/scjackknife/output/output_processed/outtrees_scjack_means_5reps_540_processed.tar.gz`.*
+Moving forward, use this `outtree` directory, which does not have empty tree files. This directory has been provided in *`average/scjackknife/output/output_processed/outtrees_scjack_means_5reps_540_processed.tar.gz`.*
 
 Removing files causes the index between the scjack matrices and `outtree` files to be mismatched, causing downstream analysis issues. Remove those scjack matrices that produced errored runs.
 
 Identify runs that errored:
 ```{r}
 
-#this is the outtree folder of scjackknife trees that has not been filtered for empty files. I do not include it but it is available upon request. 
+#this is the raw outtree folder of scjackknife trees that has not been filtered for empty files. I do not include it but it is available upon request. 
 outtrees_dir = "outtrees_scjack_means_5reps_540/"
 matrix_name_pattern = "means_5_reps_540_cells_20PC_after_PCA"
 
@@ -298,18 +301,18 @@ The above function provides a list of matrices whose `contml` runs errored. This
 
 Remove corresponding matrices
 ```
-cd ~/repo/aqhumor/AqHum_5Species/aqhumor_final/average/trees_ave/scjack/after_PCA/540_cells/input_540_cells_20PC_after_PCA/scjack_matrices
+cd average/scjackknife/input/input_540_cells_20PC_after_PCA/scjack_matrices
 rm -r $(<errored_runs_mean.txt)
 
 ```
 
-Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. This has been provided as *`average/scjackknife/output/output_processed/scjack_matrices_processed.tar.gz`*
+Moving forward, use the directory of matrices with error-causing matrices removed in downstream analysis. This directory has been provided as *`average/scjackknife/output/output_processed/scjack_matrices_processed.tar.gz`*
 
 
 ## Prepare input files for Booster.
 
 ### Add common labels to scjackknife trees
-scjackknife trees must share common labels in order to calculate the TBE. Label the scjackknife trees with their full cell ids and an abbreviated cell id that can be matched across scjackknife trees.
+scjackknife trees must share common labels (ie labels that correspond across trees) in order to calculate the TBE. Label the scjackknife trees with their full cell ids (for future reference) and an abbreviated cell id (common label) that can be matched across scjackknife trees.
 
 ```{r prep-scjack-boost}
 
@@ -323,11 +326,12 @@ labelled_trees <- label_scjack_trees(n_trees = n_trees, matrix_dir_path = matrix
 ```
 This takes ~8-10 min on a laptop with 2 cores and 16 GiB memory.
 
-The trees that have been labelled with common labels have been provided in 
-*`average/scjackknife/output/output_processed/outtree_scjack_means_5reps_540_common_label.tar.gz`*
+The trees with abbreviated, common labels have been provided in 
+*`average/scjackknife/output/output_processed/outtree_scjack_means_5reps_540_common_label.tar.gz`* for convenience. We will use these trees to run Booster and calculate scjackknife TBE scores.
 
 ### Add common labels to best Jumble tree
 
+The focal tree (the tree we will plot scjackknifes scores onto) must also share common labels with the scjackknife trees.
 ```{r}
 
 tree <- read.tree("average/jumble/output/outtrees_54mean_20PC_afterPCA_jumble_search_processed/outtree_54mean_20PC_afterPCA_jumble_search_2525674179.tre")
@@ -352,6 +356,7 @@ To facilitate reproduction, this tree has been provided in *`average/booster/out
 
 ### Combine scJackknife trees into a multiphylo .tre file for Booster
 
+Booster requires the scjackknife trees in a multiphylo tree file.
 ```{r boost-files}
 
 #combine and print out as a single tree file

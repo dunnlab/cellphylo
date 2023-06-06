@@ -11,9 +11,8 @@ The end product of this notebook are UMI matrices in `cellphylo` format.
 
 # Preliminaries  
 ```{r setup}
-#set working directory
+#set working directory to the analysis directory
 setwd("~/repo/cellphylo/analysis/")
-
 
 ```
 
@@ -32,7 +31,7 @@ wrangled_meta <- wrangle_metadata(path_to_meta_file="./ann/all_five_species_meta
 
 ```
 
-This creates and deposites `all_five_species_metafile_wrangled.csv` in the `ann` directory. This file has parsed out the cell identifier (used by van Zyl as the cell names in the UMI matriecs), cluster_id, sample_id and cell_barcode.  
+This creates and deposites `all_five_species_metafile_wrangled.csv` in the `ann` (annotations) directory. This file has parsed out the cell identifier (used by van Zyl as the cell names in the UMI matriecs), cluster_id, sample_id and cell_barcode.  
 
 ## Wrangle UMI matries  
 Download the raw UMi matrices from NCBI GEO database (GSE146188).  
