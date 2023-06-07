@@ -2,7 +2,7 @@
 
 This repo contains code meant to facilitate reproduction of the analyses in Mah & Dunn (2023), *Reconstructing cell type evolution across species through cell phylogenies of single-cell RNAseq data*.   
 
-Link to BioRxiv:  https://www.biorxiv.org/content/10.1101/2023.05.18.541372v1  
+Link to bioRxiv:  https://www.biorxiv.org/content/10.1101/2023.05.18.541372v2   
 
 # Replicate analyses
 First run the file containing all functions used in the analyses: `cellphylo_functions.R`. SessionInfo can be found in `sessionInfo_R.txt`.  
