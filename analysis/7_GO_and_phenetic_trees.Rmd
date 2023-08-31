@@ -1,0 +1,367 @@
+---
+title: "GO enrichment analysis and phenetic trees"
+---
+
+This notebook contains code for the gene ontology (GO) enrichment analysis performed to identify cell type signal from the most highly loaded genes (Table 1, Supplementary Table S1, S6) and code for building phenetic trees using distance-based methods (Fig. S7-S9).
+
+# Preliminaries
+```{r}
+
+setwd("~/repo/cellphylo/analysis")
+
+```
+
+# Gene ontology (GO) enrichment analysis
+
+## Identify the most highly loaded genes
+First identify the most highly positively or negatively loaded genes for each PC:
+
+```{r}
+library(readr) 
+library(dplyr) 
+library(stats) 
+library(tibble) 
+library(xtable) 
+library(utils) 
+
+#load matrix 
+#this matrix file was created for the GO analysis. However, it corresponds to the PCA matrix of Fig. S1 step 7
+pca <- readRDS("~/repo/cellphylo/analysis/GO_enrichment/PCA_919x919_matrix.rds")
+
+#extract loading values
+#pca$rotation are the gene loadings for each pc
+loadings <- pca$rotation %>% as.data.frame()
+
+#prepare loadings dataframe for lapply function
+loadings <- rownames_to_column(loadings, var="gene_symbol")
+#index for lapply function. First column of loadings is not a PC
+n_pc <- 1:(ncol(loadings)-1)
+
+#order each PC by most positive and most negative gene loadings
+order  <- lapply(n_pc, function(pc_index){
+  #name of PC column are we working iwth
+  PCn <- paste0("PC", pc_index)
+  #isolate gene symbol column and PC column
+  pc_column <- loadings[,c("gene_symbol", PCn)]
+  # "-" sorts by descending (highest value first)
+  by_most_pos <- pc_column[order(-pc_column[,2]),] %>% dplyr::select(gene_symbol)
+  colnames(by_most_pos) <- PCn
+  by_most_neg <-  pc_column[order(pc_column[,2]),] %>% dplyr::select(gene_symbol)
+  colnames(by_most_neg) <- PCn
+  
+  output <- list("positive" = by_most_pos, "negative" = by_most_neg)
+  
+  return(output)
+})
+positive <- sapply(order, "[[", "positive")
+positive_df <- do.call(cbind, positive)
+positive_df <- as.data.frame(positive_df) #a data frame listing the most positively loaded genes, in descending value, for each PC
+
+negative <- sapply(order, "[[", "negative")
+negative_df <- do.call(cbind, negative) 
+negative_df <- as.data.frame(negative_df) #a data frame listing the most negatively loaded genes, in ascending order, for each PC
+
+```
+
+The 919 cell 919 PC matrix used for GO enrichment analysis can be found at:
+`cellphylo/analysis/GO_enrichment/PCA_919x919_matrix.rds`.
+
+## Run GOseq
+Install GOseq and databases
+```{r}
+#GOseq
+#goseq_1.48.0 
+BiocManager::install("goseq")
+
+#Databases
+#need database for hg38 for pnull
+BiocManager::install("TxDb.Hsapiens.UCSC.hg38.knownGene")
+BiocManager::install("org.Hs.eg.db")
+
+```
+
+### GO enrichment analysis for most postiively loaded genes
+```{r}
+library(goseq)
+library("TxDb.Hsapiens.UCSC.hg38.knownGene")
+library("org.Hs.eg.db")
+
+
+#Limit analysis to just the first 20 PCs
+n_pc = c(1:20)
+
+#create the "Differential Expression" (DE)  genes list
+#mark the top 100 most positive genes as "DE"
+genes_vec <- c(rep(1, 100), rep(0, nrow(positive_df)-100))
+
+go_res <- lapply(n_pc, function(pc_index){
+#use gene symbols from PC n
+PCn <- paste0("PC", pc_index)
+names(genes_vec) <- positive_df[,PCn]
+
+#fit the probability weighting function
+pwf <- nullp(DEgenes=genes_vec, genome="hg38", id="geneSymbol", bias.data=NULL)
+
+#Biological Process (BP) GO terms
+goseq_res <- goseq(pwf, "hg38", "geneSymbol", test.cats="GO:BP")
+#Molecular Function (MF) GO terms - unhash this line and rerun this code chunk to do enrichment analysis with MF GO terms
+#goseq_res <- goseq(pwf, "hg38", "geneSymbol", test.cats="GO:MF")
+
+#take just the top 20 GO terms - to limit file size
+goseq_subset <- goseq_res[1:20,]
+
+#add PC column names
+goseq_tbl <- mutate(goseq_subset, PC = PCn, type="positive")
+return(goseq_tbl)
+})
+
+goseq_positive_res <- do.call(rbind, go_res)
+#rearrange
+goseq_positive_res <- goseq_positive_res %>% dplyr::select(PC, type, category, over_represented_pvalue,under_represented_pvalue, numDEInCat, numInCat, term, ontology)
+
+#identify significantly enriched terms using a corrected p-value cutoff of 0.05
+enriched <- goseq_positive_res[p.adjust(goseq_positive_res$over_represented_pvalue, method="BH") < 0.05,]
+
+#write significantly enriched BP GO terms to file. 
+#This table is provided with the paper as part of a Supplementary Table: SupplementaryTable_S1_goseq_BP_PC20_enriched.csv
+write.table(enriched, file="goseq_positive_BP_PC20_enriched.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+
+#unhash to save MF file
+#This table is provided with the paper as part of a Supplementary Table: SupplementaryTable_S6_goseq_MF_PC20_enriched.csv
+#write.table(enriched, file="goseq_positive_MF_PC20_enriched.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+
+```
+
+Do the same GO enrichment analysis, but for the most negatively loaded genes
+```{r}
+#Do just the first 20 PCs
+n_pc = c(1:20)
+
+genes_vec <- c(rep(1, 100), rep(0, nrow(negative_df)-100))
+
+go_res <- lapply(n_pc, function(pc_index){
+#use gene symbols from PC n
+PCn <- paste0("PC", pc_index)
+names(genes_vec) <- negative_df[,PCn]
+
+#fit the probability weighting function
+pwf <- nullp(DEgenes=genes_vec, genome="hg38", id="geneSymbol", bias.data=NULL)
+
+#Biological Process (BP) GO terms
+goseq_res <- goseq(pwf, "hg38", "geneSymbol", test.cats="GO:BP")
+#Molecular Function (MF) GO terms - unhash this line and rerun this code chunk to do enrichment analysis with MF GO terms
+#goseq_res <- goseq(pwf, "hg38", "geneSymbol", test.cats="GO:MF")
+
+#take just the top 20 GO terms - to limit file size
+goseq_subset <- goseq_res[1:20,]
+
+#add PC colname
+goseq_tbl <- mutate(goseq_subset, PC = PCn, type="negative")
+return(goseq_tbl)
+})
+
+goseq_negative_res <- do.call(rbind, go_res)
+goseq_negative_res <- goseq_negative_res %>% dplyr::select(PC, type, category, over_represented_pvalue,under_represented_pvalue, numDEInCat, numInCat, term, ontology)
+
+#identify significantly enriched terms using a corrected p-value cutoff of 0.05
+enriched <- goseq_negative_res[p.adjust(goseq_negative_res$over_represented_pvalue, method="BH") < 0.05,]
+
+#write significantly enriched BP GO terms to file. 
+#This table is provided with the paper as part of a Supplementary Table: SupplementaryTable_S1_goseq_BP_PC20_enriched.csv
+write.table(enriched, file="goseq_negative_BP_PC20_enriched.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+#unhash to save MF file
+#This table is provided with the paper as part of a Supplementary Table: SupplementaryTable_S6_goseq_MF_PC20_enriched.csv
+#write.table(enriched, file="goseq_negative_MF_PC20_enriched.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE)
+
+```
+
+The 20 most significantly enriched GO terms for the most positively or negatively loaded genes is provided as a Supplementary Table:
+Biological Process: `SupplementaryTable_S1_goseq_BP_PC20_enriched.csv`
+Molecular Function: `SupplementaryTable_S6_goseq_MF_PC20_enriched.csv`
+
+
+#Phenetic trees
+Neighbour joining (NJ), UPGMA and WPGMA trees were calculated from the matrix used to infer the Figure 5 phylogeny (Fig. S1, step D1).
+
+The Fig. 5 matrix is provided in `cellphylo/analysis/average/jumble/input/contml_54means_20PC_afterPCA_mtx/`
+
+## NJ
+```{r}
+library(Seurat)
+library(ape)
+library(phangorn)
+
+setwd("~/repo/cellphylo/analysis")
+
+#read in matrix
+mat <- Read10X("~/repo/cellphylo/analysis/average/jumble/input/contml_54means_20PC_afterPCA_mtx/")
+
+#make nj tree
+dist <- dist(mat, method="euclidean")
+nj.tree <- nj(dist)
+
+write.nexus(nj.tree, file=paste0("54_means_pca_var_norm_20_PC_nj.tre"), translate=FALSE)
+
+```
+
+The NJ tree output file is found in `cellphylo/analysis/phenetic_trees/54_means_pca_var_norm_20_PC_nj.tre`.
+
+## UPGMA
+
+```{r}
+library(Seurat)
+library(ape)
+library(phangorn)
+
+#read in matrix
+mat <- Read10X("~/repo/cellphylo/analysis/average/jumble/input/contml_54means_20PC_afterPCA_mtx/")
+
+#make nj tree
+dist <- dist(mat, method="euclidean")
+#average agglomeration method default
+upgma.tree <- phangorn::upgma(dist, method="average")
+
+#rooted by phangorn
+write.nexus(upgma.tree, file=paste0("54_means_pca_var_norm_20_PC_upgma.tre"), translate=FALSE)
+```
+
+The UPGMA tree output file is found in `cellphylo/analysis/phenetic_trees/54_means_pca_var_norm_20_PC_upgma.tre`.
+
+## WPGMA 
+
+```{r}
+library(Seurat)
+library(ape)
+library(phangorn)
+
+#read in matrix
+mat <- Read10X("~/repo/cellphylo/analysis/average/jumble/input/contml_54means_20PC_afterPCA_mtx/")
+
+#make nj tree
+dist <- dist(mat, method="euclidean")
+#average agglomeration method default
+wpgma.tree <- phangorn::wpgma(dist, method="mcquitty")
+
+#rooted by phangorn
+write.nexus(wpgma.tree, file=paste0("54_means_pca_var_norm_20_PC_wpgma_mcquitty.tre"), translate=FALSE)
+```
+
+The WPGMA tree output file is found in `cellphylo/analysis/phenetic_trees/54_means_pca_var_norm_20_PC_wpgma_mcquitty.tre`.
+
+## Single cell jackknife analysis with NJ scjack trees
+The below code was used to create the NJ scjackknife scores plotted onto the Fig. 5 topology for Supplementary Figure S10.
+
+### Calculate NJ scjackknife trees
+Use NJ to calculate scjack trees from the Fig. 5 scjackknife analysis.
+
+```{r}
+library(Seurat)
+library(ape)  #nj
+library(stats) #dist
+library(magrittr) #%>%
+
+setwd("~/repo/aqhumor/AqHum_5Species/")
+
+dir_name <- "nj_trees_means_scjack_540"
+
+  if(!dir.exists(dir_name)){
+    dir.create(dir_name)
+  }
+
+
+dir_path <- "~/repo/cellphylo/analysis/average/scjackknife/input/input_540_cells_20PC_after_PCA/scjack_matrices/"
+
+dir_list <- list.files(dir_path,full.names=TRUE, include.dirs=TRUE )
+
+nj_list <- lapply(dir_list, function(dir_path){
+#read in matrix
+mat <- Read10X(dir_path) %>% as.matrix()
+#make nj tree
+dist <- dist(mat, method="euclidean")
+nj.tree <- nj(dist)
+
+#take the last part of the path - the matrix dir name
+file_name <- sapply(strsplit(dir_path, "/"), function(v){return(v[length(v)])})
+
+write.nexus(nj.tree, file=paste0(dir_name,"/nj_", file_name, ".tre"), translate=FALSE)
+}) #close lapply
+
+```
+
+The Fig. 5 scjackknife matrices used for this analyss is found at `cellphylo/analysis/average/scjackknife/input/input_540_cells_20PC_after_PCA/scjack_matrices/`.
+
+The NJ scjackknife trees are provided at `cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/output/nj_trees_means_scjack_540.tar.gz`
+
+### Add common labels
+
+
+```{r prep-scjack-boost}
+
+library(phytools)
+
+n_trees =500
+print=TRUE
+
+matrix_dir_path = ("~/repo/cellphylo/analysis/average/scjackknife/input/input_540_cells_20PC_after_PCA/scjack_matrices/")
+
+tree_dir_path = "cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/output/nj_trees_means_scjack_540"
+file_name_prefix = "nj_means_outtrees_scjack_540_TBE"
+
+if (print==TRUE){
+    if(!dir.exists(paste0(file_name_prefix, "_common_label"))){
+    dir.create(paste0(file_name_prefix, "_common_label"))}
+}
+
+tree_list <- list.files(path = tree_dir_path, full.names=TRUE, recursive=FALSE )
+matrix_list <- list.dirs(path = matrix_dir_path, full.names=TRUE, recursive=FALSE)
+
+common_label_trees_list <- lapply(c(1:n_trees), function(tree_index){
+tree <- ape::read.nexus(file=tree_list[tree_index])
+#calculating clade frequencies requires common label across jackknife trees so that tips correspond
+#make common labels
+species <- sapply(strsplit(tree$tip.label, "_"), function(v){return(v[1])})
+cluster_id <- sapply(strsplit(tree$tip.label, "_"), function(v){return(v[3])})
+
+new_label <- paste0(species, "_", cluster_id)
+common_labels_tree <- tree
+common_labels_tree$tip.label <- new_label
+    
+if (print==TRUE){
+#print out common labels tree
+write.tree(common_labels_tree, file=paste0(file_name_prefix, "_common_label/",file_name_prefix, "_common_labels_", tree_index, ".tre"))
+}
+    
+#only returning one type of tree (nj scjack trees already labelled)
+return(common_labels_tree)
+    
+}) #close lapply
+
+  
+```
+
+The NJ scjackknife trees with common labels can be found at `cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/output/nj_means_outtrees_scjack_540_TBE_common_label.tar.gz`
+
+
+### Combine common label scjackknife trees in a single multiphylo file
+
+Booster requires the scjackknife trees in a multi tree file.
+Used cellphylo functions file as of Aug 1 2023
+```{r boost-files}
+
+#combine and print out as a single tree file
+#combine_multi_tree function comes from `cellphylo_functions.R`
+multi_trees <- combine_multi_trees("~/repo/cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/output/nj_means_outtrees_scjack_540_TBE_common_label/")
+
+write.tree(multi_trees, file="multiphylo_nj_means_outtrees_scjack_540_TBE_common_label.tre")
+
+    
+```
+
+The output file can be found at `cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/booster/multiphylo_nj_means_outtrees_scjack_540_TBE_common_label.tre`
+
+### Run Booster to calculate TBE scores
+```
+~/repo/aqhumor/AqHum_5Species/aqhumor_final/scjackknife/scjack_54_jumble_search_TBE/booster/booster_macos64 -i ~/repo/cellphylo/analysis/average/booster/outtree_54mean_20PC_afterPCA_jumble_search_2525674179_common_label.tre -b ~/repo/cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/booster/multiphylo_nj_means_outtrees_scjack_540_TBE_common_label.tre > 54_means_BM_with_NJ_multiphylo.tre
+```
+
+The output tree with TBE scores calculated from NJ scjack trees plotted onto the Fig. 5 phylogeny can be found at: `cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/scored_trees/54_means_BM_with_NJ_multiphylo.tre`

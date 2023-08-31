@@ -1,0 +1,65 @@
+#NEXUS
+[R-package APE, Tue Jul 18 16:06:39 2023]
+
+BEGIN TAXA;
+	DIMENSIONS NTAX = 54;
+	TAXLABELS
+		macM_sample_5SchwannCell-nmy_SchwannCell-nmy_barcode
+		macM_sample_15Macrophage_Macrophage_barcode
+		macM_sample_10JCT_JCT_barcode
+		macM_sample_6NKT_NKT_barcode
+		macM_sample_9Melanocyte_Melanocyte_barcode
+		macM_sample_7SchlemmsCanal_SchlemmsCanal_barcode
+		macM_sample_12Pericyte_Pericyte_barcode
+		macM_sample_14SchwannCell-my_SchwannCell-my_barcode
+		macM_sample_13NKT_NKT_barcode
+		macM_sample_2CiliaryMuscle_CiliaryMuscle_barcode
+		macM_sample_11Pericyte_Pericyte_barcode
+		macM_sample_3Macrophage_Macrophage_barcode
+		macF_sample_5SchwannCell_SchwannCell_barcode
+		macF_sample_19SchlemmsCanal_SchlemmsCanal_barcode
+		macF_sample_6JCT_JCT_barcode
+		macF_sample_10NKT_NKT_barcode
+		macF_sample_4CiliaryMuscle_CiliaryMuscle_barcode
+		macF_sample_12Melanocyte_Melanocyte_barcode
+		macF_sample_8Melanocyte_Melanocyte_barcode
+		macF_sample_16Pericyte_Pericyte_barcode
+		macF_sample_3Macrophage_Macrophage_barcode
+		macF_sample_14CollectorChn_CollectorChn_barcode
+		macF_sample_13Pericyte_Pericyte_barcode
+		mouse_sample_12Endo-Corneal_Endo-Corneal_barcode
+		mouse_sample_4Macrophage_Macrophage_barcode
+		mouse_sample_2Melanocyte_Melanocyte_barcode
+		mouse_sample_19SchlemmsCanal_SchlemmsCanal_barcode
+		mouse_sample_17CiliaryMuscle_CiliaryMuscle_barcode
+		mouse_sample_18SchwannCell_SchwannCell_barcode
+		mouse_sample_16NKT_NKT_barcode
+		mouse_sample_10Endo-Vasc_Endo-Vasc_barcode
+		mouse_sample_6JCT_JCT_barcode
+		mouse_sample_8Pericyte_Pericyte_barcode
+		pig_sample_10NKT_NKT_barcode
+		pig_sample_11Pericyte_Pericyte_barcode
+		pig_sample_17Endo-Corneal_Endo-Corneal_barcode
+		pig_sample_15Melanocyte_Melanocyte_barcode
+		pig_sample_12CollectorChn_CollectorChn_barcode
+		pig_sample_18SchwannCell-my_SchwannCell-my_barcode
+		pig_sample_4Macrophage_Macrophage_barcode
+		pig_sample_16CiliaryMuscle_CiliaryMuscle_barcode
+		pig_sample_13SchwannCell-nmy_SchwannCell-nmy_barcode
+		pig_sample_3JCT_JCT_barcode
+		pig_sample_14SchlemmsCanal_SchlemmsCanal_barcode
+		human_sample_Endo-Vasc_Endo-Vasc_barcode
+		human_sample_SchwannCell-nmy_SchwannCell-nmy_barcode
+		human_sample_Melanocyte_Melanocyte_barcode
+		human_sample_NKT_NKT_barcode
+		human_sample_Macrophage_Macrophage_barcode
+		human_sample_JCT_JCT_barcode
+		human_sample_Pericyte_Pericyte_barcode
+		human_sample_SchwannCell-my_SchwannCell-my_barcode
+		human_sample_CiliaryMuscle_CiliaryMuscle_barcode
+		human_sample_Endo-Schlemms_Endo-Schlemms_barcode
+	;
+END;
+BEGIN TREES;
+	TREE * UNTITLED = [&R] (pig_sample_17Endo-Corneal_Endo-Corneal_barcode:4.516805032,(pig_sample_3JCT_JCT_barcode:3.430334046,((pig_sample_18SchwannCell-my_SchwannCell-my_barcode:0.747643299,(macM_sample_14SchwannCell-my_SchwannCell-my_barcode:0.4693040656,human_sample_SchwannCell-my_SchwannCell-my_barcode:0.4693040656):0.2783392334):2.29062685,(macM_sample_13NKT_NKT_barcode:2.916088868,(((macF_sample_5SchwannCell_SchwannCell_barcode:0.4954448458,mouse_sample_18SchwannCell_SchwannCell_barcode:0.4954448458):1.241413112,(pig_sample_13SchwannCell-nmy_SchwannCell-nmy_barcode:1.083051761,(macM_sample_5SchwannCell-nmy_SchwannCell-nmy_barcode:0.3679767364,human_sample_SchwannCell-nmy_SchwannCell-nmy_barcode:0.3679767364):0.7150750245):0.6538061973):1.020741411,((pig_sample_15Melanocyte_Melanocyte_barcode:1.765104659,(macF_sample_12Melanocyte_Melanocyte_barcode:0.758390829,(macF_sample_8Melanocyte_Melanocyte_barcode:0.2760617986,(mouse_sample_2Melanocyte_Melanocyte_barcode:0.2163235134,(macM_sample_9Melanocyte_Melanocyte_barcode:0.1992900318,human_sample_Melanocyte_Melanocyte_barcode:0.1992900318):0.0170334816):0.05973828519):0.4823290304):1.00671383):0.9370052848,(((pig_sample_14SchlemmsCanal_SchlemmsCanal_barcode:1.354100996,(macF_sample_19SchlemmsCanal_SchlemmsCanal_barcode:0.817360315,(macM_sample_7SchlemmsCanal_SchlemmsCanal_barcode:0.7270413493,mouse_sample_19SchlemmsCanal_SchlemmsCanal_barcode:0.7270413493):0.09031896562):0.5367406814):1.071249841,((macF_sample_14CollectorChn_CollectorChn_barcode:0.9464614131,pig_sample_12CollectorChn_CollectorChn_barcode:0.9464614131):0.5264532552,(human_sample_Endo-Schlemms_Endo-Schlemms_barcode:1.054534382,(mouse_sample_10Endo-Vasc_Endo-Vasc_barcode:0.4920409561,human_sample_Endo-Vasc_Endo-Vasc_barcode:0.4920409561):0.5624934255):0.4183802866):0.9524361696):0.1754921642,((macF_sample_13Pericyte_Pericyte_barcode:1.403901658,(macM_sample_12Pericyte_Pericyte_barcode:1.146602845,(pig_sample_11Pericyte_Pericyte_barcode:0.7982700464,(macM_sample_11Pericyte_Pericyte_barcode:0.6351442531,(mouse_sample_8Pericyte_Pericyte_barcode:0.514479873,(macF_sample_16Pericyte_Pericyte_barcode:0.1375931029,human_sample_Pericyte_Pericyte_barcode:0.1375931029):0.3768867702):0.1206643801):0.1631257932):0.348332799):0.2572988129):1.100974955,((pig_sample_4Macrophage_Macrophage_barcode:0.8374773825,(mouse_sample_4Macrophage_Macrophage_barcode:0.5823141007,(macF_sample_3Macrophage_Macrophage_barcode:0.4802298233,(macM_sample_3Macrophage_Macrophage_barcode:0.3961255678,human_sample_Macrophage_Macrophage_barcode:0.3961255678):0.08410425554):0.1020842774):0.2551632818):1.623450003,((macM_sample_15Macrophage_Macrophage_barcode:1.550958094,(pig_sample_10NKT_NKT_barcode:0.8432612765,(macF_sample_10NKT_NKT_barcode:0.521681455,(macM_sample_6NKT_NKT_barcode:0.4175666986,(mouse_sample_16NKT_NKT_barcode:0.2849399954,human_sample_NKT_NKT_barcode:0.2849399954):0.1326267032):0.1041147564):0.3215798215):0.7076968176):0.8472644289,((pig_sample_16CiliaryMuscle_CiliaryMuscle_barcode:1.261393363,(mouse_sample_17CiliaryMuscle_CiliaryMuscle_barcode:0.9301706354,(macM_sample_2CiliaryMuscle_CiliaryMuscle_barcode:0.6090631226,(macF_sample_4CiliaryMuscle_CiliaryMuscle_barcode:0.2728186899,human_sample_CiliaryMuscle_CiliaryMuscle_barcode:0.2728186899):0.3362444327):0.3211075128):0.3312227276):1.050059889,(mouse_sample_12Endo-Corneal_Endo-Corneal_barcode:1.874997039,(macM_sample_10JCT_JCT_barcode:1.326566315,(mouse_sample_6JCT_JCT_barcode:0.9567846254,(macF_sample_6JCT_JCT_barcode:0.6346923329,human_sample_JCT_JCT_barcode:0.6346923329):0.3220922925):0.3697816893):0.5484307245):0.4364562132):0.08676927062):0.06270486269):0.04394922782):0.09596638847):0.1012669418):0.05548942538):0.1584894983):0.1221812819):0.3920638965):1.086470986);
+END;
