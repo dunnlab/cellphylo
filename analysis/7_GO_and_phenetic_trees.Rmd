@@ -67,7 +67,8 @@ The 919 cell 919 PC matrix used for GO enrichment analysis can be found at:
 `cellphylo/analysis/GO_enrichment/PCA_919x919_matrix.rds`.
 
 ## Run GOseq
-Install GOseq and databases
+
+Install GOseq and databases if required
 ```{r}
 #GOseq
 #goseq_1.48.0 
@@ -191,8 +192,6 @@ library(Seurat)
 library(ape)
 library(phangorn)
 
-setwd("~/repo/cellphylo/analysis")
-
 #read in matrix
 mat <- Read10X("~/repo/cellphylo/analysis/average/jumble/input/contml_54means_20PC_afterPCA_mtx/")
 
@@ -298,13 +297,14 @@ The NJ scjackknife trees are provided at `cellphylo/analysis/phenetic_trees/NJ_s
 ```{r prep-scjack-boost}
 
 library(phytools)
+library(ape)
 
 n_trees =500
 print=TRUE
 
 matrix_dir_path = ("~/repo/cellphylo/analysis/average/scjackknife/input/input_540_cells_20PC_after_PCA/scjack_matrices/")
 
-tree_dir_path = "cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/output/nj_trees_means_scjack_540"
+tree_dir_path = "~/repo/cellphylo/analysis/phenetic_trees/NJ_scjack_analysis/output/nj_trees_means_scjack_540"
 file_name_prefix = "nj_means_outtrees_scjack_540_TBE"
 
 if (print==TRUE){
@@ -328,7 +328,8 @@ common_labels_tree$tip.label <- new_label
     
 if (print==TRUE){
 #print out common labels tree
-write.tree(common_labels_tree, file=paste0(file_name_prefix, "_common_label/",file_name_prefix, "_common_labels_", tree_index, ".tre"))
+#if write.tree errors try write.nexus()
+ape::write.tree(common_labels_tree, file=paste0(file_name_prefix, "_common_label/",file_name_prefix, "_common_labels_", tree_index, ".tre"))
 }
     
 #only returning one type of tree (nj scjack trees already labelled)
