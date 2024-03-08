@@ -51,7 +51,7 @@ macM_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_
 mouse_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_mouse", n_features=3000, k_weight = 100, print=TRUE)
 
 #pig
-pig_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_pigF", n_features=3000, k_weight = 100, print=TRUE)
+pig_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_pig", n_features=3000, k_weight = 100, print=TRUE)
 
 ```
 
@@ -82,16 +82,19 @@ For each species, randomly subset the full matrix to 10 cells per cell type grou
 The normalized and within-species matrices are not provided due to size, but we provide the subsetted matrices in *`analysis/matrix/subset`*. These subsetted matrices are provided to ensure reproducibility, since subsetting is random. However, if you'd like to create your own subsetted matrices, use the code below.
 
 ```{r subset-cells} 
+
+
+  
 #human
-subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_human", n_reps = 10, print=TRUE)
+subset_cells(path_to_matrix = "matrix/within-species_norm_and_integration/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_human", n_reps = 10, print=TRUE)
 #macF
-subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_macF", n_reps = 10, print=TRUE)
+subset_cells(path_to_matrix = "matrix/within-species_norm_and_integration/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_macF", n_reps = 10, print=TRUE)
 #macM
-subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_macM", n_reps = 10, print=TRUE)
+subset_cells(path_to_matrix = "matrix/within-species_norm_and_integration/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_macM", n_reps = 10, print=TRUE)
 #mouse
-subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_mouse", n_reps = 10, print=TRUE)
+subset_cells(path_to_matrix = "matrix/within-species_norm_and_integration/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_mouse", n_reps = 10, print=TRUE)
 #pig
-subset_cells(path_to_matrix = "matrix/within-species/matrix_sct_integrated_pearson_residuals_pig", n_reps = 10, print=TRUE)
+subset_cells(path_to_matrix = "matrix/within-species_norm_and_integration/integrated_pearson_residuals/matrix_sct_integrated_pearson_residuals_pig", n_reps = 10, print=TRUE)
 
 ```
 
