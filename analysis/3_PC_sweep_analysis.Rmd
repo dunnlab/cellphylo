@@ -22,7 +22,7 @@ Subset the 919 cell 919 PC matrix to 3-100 PCs and print out the matrices as `co
 ```{r make-pc-sweep-infiles}
 
 #perform PCA on the cross-species integrated matrix.
-make_pc_sweep_infiles(matrix_path="matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", run_PCA=TRUE, PC_range=c(3:10))
+make_pc_sweep_infiles(matrix_path="matrix/cross-species_integration/aqhumor_cross_species_integrated_mtx/", run_PCA=TRUE, PC_range=c(3:100))
 
 ```
 

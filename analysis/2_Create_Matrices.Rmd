@@ -39,7 +39,7 @@ This step is memory intensive and you may have to run this on an hpc cluster.
 ```{r within-species-integration}
 
 #human
-human_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_humanF", n_features=3000, k_weight = 100, print=TRUE)
+human_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_human", n_features=3000, k_weight = 100, print=TRUE)
 
 #macF
 macF_obj <- within_species_integration(path_to_matrix = "matrix/wrangled/matrix_wrangled_macF", n_features=3000, k_weight = 100, print=TRUE)
@@ -103,7 +103,7 @@ The cross-species analysis (steps 5 and 6) is performed on a combined matrix of 
 ## Step 5. Combine matrices by gene orthology 
 Fig. S1 step 5
 
-We will combine the species matrix into a single matrix based on shared orthlogs.  
+We will combine the species matrix into a single matrix based on shared orthologs.  
 
 ### Wrangle the orthlogs table  
 
@@ -138,7 +138,7 @@ This produces `AqHumor_ensembl_orthologs_wrangled.tsv` and TSV table mapping gen
 
 ### Combine all five species' matrices by shared orthologs
 
-Combine the subsetted matrices (Fig. S1, step 4) by shared orthlogs into a single combined matrix (Fig. S1, step 5)
+Combine the subsetted matrices (Fig. S1, step 4) by shared orthologs into a single combined matrix (Fig. S1, step 5)
 
 ```{r combine-matrices}
 
